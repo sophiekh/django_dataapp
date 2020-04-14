@@ -12,7 +12,6 @@ jsonschema==2.6.0
 matplotlib==2.2.2
 path.py==11.0.1
 pathlib2==2.3.2
-python3-tk==8.6
 pylint==1.8.4
 pyodbc==4.0.23
 pyOpenSSL==18.0.0

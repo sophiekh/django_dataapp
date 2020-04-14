@@ -1,1 +1,1 @@
-web: gunicorn django-dataapp.wsgi
+web: gunicorn pythontool.wsgi

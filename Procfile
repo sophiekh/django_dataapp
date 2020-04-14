@@ -1,1 +1,1 @@
-web: gunicorn toolapp.wsgi --log-file 
+web: gunicorn django-dataapp.wsgi

@@ -10,7 +10,7 @@ from .forms import DatasetForm, DataModelForm, RegistrationForm, ChooseColumnsFo
 from .models import Dataset, DataModel, Result
 
 import pandas as pd, numpy as np, os, json, io, base64
-from PIL import Image
+# from PIL import Image
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
@@ -18,8 +18,8 @@ from sklearn.metrics import silhouette_score, accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, StratifiedKFold
-import matplotlib.pyplot as plt
-import seaborn as sns; sns.set(style='white')
+# import matplotlib.pyplot as plt
+# import seaborn as sns; sns.set(style='white')
 
 
 class HomePageView(LoginRequiredMixin, ListView):
@@ -102,24 +102,24 @@ def changeColumnsView(request, pk):
         form = ChooseColumnsForm()
         return render(request, 'change_columns.html', {'form': form, 'columns': columns, 'features': features[0], 'sample': sampleColumn, 'class': classColumn})
 
-def drawGraphic(X, y = ""):
-    fig = plt.figure()
-    if (type(y) == str):
-        plt.scatter(X[:, 0], X[:, 1])
-    else:
-        classes = y.unique()
-        for i in range (0, classes.size):
-            plt.scatter(X[y == classes[i], 0], X[y == classes[i], 1], label = classes[i])
-    plt.legend()
-    canvas = fig.canvas
-    buf, size = canvas.print_to_buffer()
-    image = Image.frombuffer('RGBA', size, buf, 'raw', 'RGBA', 0, 1)
-    buffer=io.BytesIO()
-    image.save(buffer,'PNG')
-    graphic = buffer.getvalue()
-    graphic = base64.b64encode(graphic)
-    buffer.close()
-    return graphic
+# def drawGraphic(X, y = ""):
+#     fig = plt.figure()
+#     if (type(y) == str):
+#         plt.scatter(X[:, 0], X[:, 1])
+#     else:
+#         classes = y.unique()
+#         for i in range (0, classes.size):
+#             plt.scatter(X[y == classes[i], 0], X[y == classes[i], 1], label = classes[i])
+#     plt.legend()
+#     canvas = fig.canvas
+#     buf, size = canvas.print_to_buffer()
+#     image = Image.frombuffer('RGBA', size, buf, 'raw', 'RGBA', 0, 1)
+#     buffer=io.BytesIO()
+#     image.save(buffer,'PNG')
+#     graphic = buffer.getvalue()
+#     graphic = base64.b64encode(graphic)
+#     buffer.close()
+#     return graphic
 
 @login_required
 def datasetPCAView(request, pk):

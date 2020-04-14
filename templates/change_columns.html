@@ -1,0 +1,115 @@
+{% extends "base_generic.html" %}
+{% block title %}
+    <title>Изменить колонки</title>
+{% endblock %}
+{% block content %}
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-danger">
+                <p>{{field.name}}: {{ error|escape }}</p>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-danger">
+            <p>{{ error|escape }}</p>
+        </div>
+    {% endfor %}
+{% endif %}
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <button type="submit" class= "btn btn-primary" onclick="selectAll();">Сохранить изменения</button>
+  <br>
+  <div class="flex">
+    <div class="form-group" style= "width: 15%; margin-top: 20px;">
+      <label for= "id_columns">Неиспользуемые столбцы</label>
+      <small class="form-text text-muted">Данные из этих столбцов не будут учитываться при построении модели.</small>
+      <select id= "id_columns" class="form-control" name="all_columns" multiple style= "height: 500px;">
+        {% for column in columns%}
+        <option value="{{column}}">{{column}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="flex flex-column" style= "width: 6%; margin-top: 200px;">
+      <div class="btn-move-features flex flex-column">
+        <button class= "btn btn-secondary btn-move" type="button" onclick="MoveFeatureLeft();"><i class= "fa fa-angle-double-left"></i></button>
+        <button class= "btn btn-secondary btn-move" type="button" onclick="MoveFeatureRight();"><i class= "fa fa-angle-double-right"></i></button>
+      </div>
+      <div class="btn-move-sample flex flex-column">
+        <button class= "btn btn-secondary btn-move" type="button" onclick="MoveLeft('id_sampleColumn');"><i class= "fa fa-angle-double-left"></i></button>
+        <button class= "btn btn-secondary btn-move" type="button" onclick="MoveRight('id_sampleColumn');"><i class= "fa fa-angle-double-right"></i></button>
+      </div>
+      <div class="btn-move-class flex flex-column">
+        <button class= "btn btn-secondary btn-move" type="button" onclick="MoveLeft('id_classColumn');"><i class= "fa fa-angle-double-left"></i></button>
+      <button class= "btn btn-secondary btn-move" type="button" onclick="MoveRight('id_classColumn');"><i class= "fa fa-angle-double-right"></i></button>
+      </div>
+    </div>
+    <div class=" flex flex-column" style= "width: 40%;">
+      <div class="form-group" >
+        <label for= "id_features">Признаки</label>
+        <small class="form-text text-muted">По данным из этих столбцов будет строиться модель.</small>
+        <select id= "id_features" class="form-control" name="features" multiple style= "height: 300px;">
+          {% for feature in features%}
+          <option value="{{feature}}">{{feature}}</option>
+          {% endfor %}
+        </select>
+      </div>
+        <div class="form-group">
+          <label for= "id_sampleColumn">Шифр образца</label>
+          <small class="form-text text-muted">Этот столбец содержит идентификаторы образцов. Если такого столбца в датасете нет, оставьте поле пустым.</small>
+          <input type= "text" id= "id_sampleColumn" name="sampleColumn" class="form-control" value= "{{sample}}" readonly>
+        </div>
+        <div class="form-group">
+          <label for= "id_classColumn">Класс(название группы)</label>
+          <small class="form-text text-muted">Этот столбец содержит группу, к которой относится образец. Если такого столбца в датасете нет, оставьте поле пустым.</small>
+          <input type= "text" id= "id_classColumn" name="classColumn" class="form-control" value= "{{class}}" readonly>
+        </div>
+    </div>  
+  </div>
+</form>
+<script>
+  function MoveFeatureLeft()
+{
+    let selected = $('#id_features option:selected');
+    selected.appendTo('#id_columns');
+}
+
+function MoveFeatureRight()
+{
+    let selected = $('#id_columns option:selected');
+    selected.appendTo('#id_features');
+}
+
+function MoveLeft(id)
+{
+    let value = document.getElementById(id).value;
+    document.getElementById(id).value = '';
+    document.getElementById('id_columns').options.add(new Option(value, value));
+}
+
+function MoveRight(id)
+{
+    let selected = $("#id_columns option:selected");
+    let value = document.getElementById(id).value;
+    if (selected.length > 0) {
+      if (selected.length > 1)
+        alert("Выбраны несколько столбцов. Вы можете выбрать только один столбец.");
+      else {
+        document.getElementById("id_columns").options.remove(document.getElementById("id_columns").options.selectedIndex);
+        if (value !== "")
+          document.getElementById('id_columns').options.add(new Option(value, value));
+        document.getElementById(id).value = selected[0].value;
+      }
+    }
+}
+function selectAll() { 
+        selectBox = document.getElementById("id_features");
+
+        for (let i = 0; i < selectBox.options.length; i++) 
+        { 
+             selectBox.options[i].selected = true; 
+        } 
+}
+</script>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base_generic.html" %}
+{% block title %}
+    <title>Данные</title>
+{% endblock %}
+{% block content %}
+  <a class= "btn btn-primary" href="./add_dataset/">Загрузить новые данные</a>
+  <h4 class= "title">Загруженные данные</h4>
+  {% if dataset_list %} 
+    <div class="flex">
+      {% for dataset in dataset_list %}
+        <div class="card" style="width: 25%;">
+          <div class= "card-body">
+            <p>Название: {{ dataset.title }}</p>
+            <p>Описание: {{ dataset.description }}<p>
+            <p>Дата загрузки: {{dataset.date}}</p>
+          </div>
+          <a class= "btn btn-info options" href="{% url 'dataset_detail' pk=dataset.pk %}">Открыть датасет</a>
+          <a class= "btn btn-info options" href="{% url 'delete_dataset' pk=dataset.pk %}" onclick="return confirm('Подтвердите удаление');">Удалить датасет</a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>Нет загруженных датасетов.</p>
+  {% endif %}
+{% endblock %}

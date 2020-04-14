@@ -1,0 +1,59 @@
+{% extends "base_generic.html" %}
+{% block title %}
+    <title>Загрузить датасет</title>
+{% endblock %}
+{% block content %}
+{% if form.errors %}
+{% for field in form %}
+    {% for error in field.errors %}
+        <div class="alert alert-danger">
+            <p>{{ error|escape }}</p>
+        </div>
+    {% endfor %}
+{% endfor %}
+{% for error in form.non_field_errors %}
+    <div class="alert alert-danger">
+        <p>{{ error|escape }}</p>
+    </div>
+{% endfor %}
+{% endif %}
+  <div class="flex"> 
+    <form method="post" enctype="multipart/form-data">
+      <h2 class= "title">Загрузить датасет</h2>
+      {% csrf_token %}
+      <div class="form-group col-md-10">
+        <input type="text" class="form-control" id="{{form.title.auto_id}}" name= "title" maxlength= "100" required placeholder="Название">
+      </div>
+      <div class="form-group col-md-10">
+        <textarea class="form-control" id="{{form.description.auto_id}}" name= "description" rows="5" required placeholder="Описание"></textarea>
+      </div>
+      <div class="form-group col-md-10">
+        <input type="file" name="data" class="inputfile" required="" id="{{form.data.auto_id}}">
+        <div>
+          <label class="btn btn-primary" for="{{form.data.auto_id}}" id="btn-load"><i class="fa fa-upload" aria-hidden="true"></i>Выбрать файл</label>
+          <label class="output" id="output"></label>
+        </div> 
+        <small class="form-text text-muted">Файл с данными. Доступные форматы: .xlsx, .csv.</small>
+      </div>
+      <button class= "btn btn-primary" type="submit">Загрузить</button>
+    </form>
+    <div class="side-info card" style="width: 70%">
+      <div class= "card-body">
+        <h2>Формат датасета</h2>
+        <p>Тут будет инструкция о том, в каком виде должны быть данные с примером.</p>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block javascript %}
+<script>
+  let input = document.getElementById("id_data");
+  let label = document.getElementById('output');
+  input.addEventListener('change', function(e){
+    let fileName = e.target.value.split( '\\' ).pop();
+    if( fileName )
+      label.innerHTML = fileName;
+	});
+</script>
+{% endblock %}
+

@@ -1,0 +1,29 @@
+{% extends "base_generic.html" %}
+
+{% block title%}<title>Визуализация данных</title>{% endblock %}
+{% block content %}
+{% if owner == user %}
+<a class= "btn btn-primary" href= "{% url 'dataset_detail' pk=pk %}">Назад к данным</a></br>
+<div class="flex">
+  <section class= "dataset-info card" style="width: 35%;">
+    <div class= "card-body">
+      <p>Название: {{ title }}</p>
+      <p>Описание: {{ description }}</p>
+      <p>Дата загрузки: {{date}}</p>
+      <p>Тут будет описание метода главных компонент.</p>
+    </div>
+  </section>
+  <section class= "dataset-info card" style="width: 65%;">
+    <div class= "card-body">
+      <p>Без предварительного нормирования данных:</p>
+      <img style="width: 38rem;" src="data:image/png;base64,{{ graphic|safe }}"> 
+      <p>С нормированием:</p>
+      <img style="width: 38rem;" src="data:image/png;base64,{{ graphic_normalized|safe }}"> 
+    </div>
+  </section>  
+</div>
+
+{% else %}
+<p>У Вас нет прав на просмотр этих данных.</p>
+{% endif%}
+{% endblock %}

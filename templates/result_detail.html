@@ -1,0 +1,38 @@
+{% extends "base_generic.html" %}
+
+{% block title%}<title>Результат</title>{% endblock %}
+{% block content %}
+{% if owner == user %}
+</br>
+<div class= "flex">
+  <section class= "dataset-info card" style="width: 30%;">
+    <div class= "card-body">
+      <h4 class= "title">Информация о датасете</h4>
+      <p>Название: {{ title }}</p>
+      <p>Описание: {{ description }}</p>
+      <p>Дата загрузки: {{date}}</p>
+    </div>
+  </section>
+  <div class= "model-info card" style="width: 70%;">
+    <div class= "card-body">
+      <h4 class= "title">Информация о модели</h4>
+      <p>Тип: {{ type }}</p>
+      <p>Дата создания: {{model_date}}</p>
+      {% if type == "Классификация деревом решений" %}
+        <p>Точность: {% widthratio score 1 100%} %</p>
+      {% endif %}
+      {% if type == "Кластеризация методом k-средних" %}
+      <p>Оценка метрикой Силуэт: {{score}}</p>
+      {% endif %}
+      <a class= "btn btn-primary" href= "{% url 'model_detail' pk=model_pk %}">Назад к модели</a>
+      <a class= "btn btn-primary" href= "{% url 'result_download' pk=result_pk %}">Скачать результат в формате .xlsx</a>
+    </div>
+  </div>
+</div> 
+<div class="table thead-dark table-hover table-sm table-responsive">
+  {{ data_table|safe}}
+</div>
+{% else %}
+<p>У Вас нет прав на просмотр этих данных.</p>
+{% endif%}
+{% endblock %}

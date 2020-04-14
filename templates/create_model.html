@@ -1,0 +1,101 @@
+{% extends "base_generic.html" %}
+{% block title %}
+    <title>Создать модель</title>
+{% endblock %}
+{% block content %}
+  <div class= "flex">
+    <form style= "width: 35%;" class="model_form" method="post"  enctype="multipart/form-data">
+      <h4>Создать модель</h4>
+      {% csrf_token %}
+      <div class="form-group col-md-20">
+        <label for="id_modelType">Тип модели:</label>
+        <select class= "form-control" name="modelType" id="id_modelType">
+          <option value="Кластеризация методом k-средних">Кластеризация методом k-средних</option>
+          {% if class %}
+          <option value="Классификация деревом решений">Классификация с помощью дерева решений</option>
+          {% endif %}
+        </select>
+      </div>
+      <button style= "margin-left: 15px;" class= "btn btn-light" id= "btn-params" type= "button">Дополнительные параметры<i style= "margin-left: 2px; font-size: 14px; font-weight: lighter" id= "btn-icon" class="fa fa-chevron-down"></i></button>
+      <br>
+      <div style= "display:none" id= "model-params">
+        <div class="model1 form-group col-md-6">
+          <label for="id_minClusters">Минимальное количество кластеров:</label>
+          <input class= "form-control" type="number" name="minClusters" required="" id="id_minClusters" min = "2" value= "2" max = "{{samples}}">
+        </div>
+        <div class="model1 form-group col-md-6">
+          <label for="id_maxClusters">Максимальное количество кластеров:</label>
+          <input class= "form-control" type="number" name="maxClusters" required="" id="id_maxClusters" min = "2" value = "{{samples}}" max = "{{samples}}">
+        </div>
+        <div style = "display: none;" class="model2 form-group col-md-10">
+          <label for="id_parameterSearchMethod">Метод поиска параметров:</label>
+          <select class= "form-control" name="parameterSearchMethod" id="id_parameterSearchMethod">
+            <option value="Randomized search">Randomized search</option>       
+            <option value="Grid search">Grid search</option>        
+          </select>
+        </div>
+      </div>
+      <button style= "margin-top: 20px;" class= "btn btn-primary" id= "btn-submit" type="submit">Выбрать</button>
+      <div id= "message" class="alert alert-info" style= "display: none;">
+        Идет построение модели...<br>Этот процесс может занять несколько минут, пожалуйста, подождите. После завершения Вы будете перенаправлены на страницу с результатами.
+      </div>
+    </form>
+    <div class= "side-info card" style= "width: 65%; margin-left: 10px;">
+      <div class= "card-body">
+        <h4>Описание методов</h4>
+        <p>Тут будет описание доступных методов и их параметров.</p>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block javascript %}
+<script>
+  document.getElementById("btn-submit").addEventListener("click", showPreloader);
+  document.getElementById("btn-params").addEventListener("click", showParameters);
+  document.getElementById("id_modelType").addEventListener("change", changeParameters);
+  function showPreloader() {
+    let btn = document.getElementById("btn-submit");
+    btn.setAttribute("class", "btn btn-primary disabled");
+    btn.textContent = "Строим модель...";
+    document.getElementById("message").style.display = "block";
+  }
+  function showParameters() {
+    let icon = document.getElementById("btn-icon");
+    let params = document.getElementById("model-params");
+    if (icon.classList.contains("fa-chevron-down")) {
+      icon.classList.remove("fa-chevron-down");
+      icon.classList.add("fa-chevron-up");
+      params.style.display = "block";
+    }
+    else {
+      icon.classList.remove("fa-chevron-up");
+      icon.classList.add("fa-chevron-down");
+      params.style.display = "none";
+    }
+  }
+  function changeParameters() {
+    value = document.getElementById("id_modelType").value;
+    let model1 = document.querySelectorAll(".model1");
+    let model2 = document.querySelectorAll(".model2");
+    switch(value) {
+      case "Кластеризация методом k-средних":
+        for (let elem of model1) {
+          elem.style.display = "block";
+        }
+        for (let elem of model2) {
+          elem.style.display = "none";
+        }
+        break;
+      case "Классификация деревом решений":
+        for (let elem of model2) {
+            elem.style.display = "block";
+        }
+        for (let elem of model1) {
+            elem.style.display = "none";
+        }
+        break;
+    }  
+  }
+</script>
+{% endblock %}
+

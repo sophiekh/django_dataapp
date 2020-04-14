@@ -1,0 +1,45 @@
+{% extends "base_generic.html" %}
+
+{% block title%}<title>Открыть датасет</title>{% endblock %}
+{% block content %}
+{% if owner == user %}
+<div class= "flex">
+  <section class= "dataset-info card" style="width: 30%;">
+    <div class= "card-body">
+      <h4 class= "title">Информация о датасете</h4>
+      <p>Название: {{ title }}</p>
+      <p>Описание: {{ description }}</p>
+      <p>Дата загрузки: {{date}}</p>
+      <div class="alert alert-info" role="alert">
+        Чтобы получить корректные результаты, проверьте, что столбцы сопоставлены правильно.
+      </div>
+    </div>
+      <a class= "btn btn-primary options" href="pca/">Визуализация</a>
+      <a class= "btn btn-primary options" href= "models/">Анализ</a>
+  </section>
+  <div class= "set_columns card" style="width: 70%;">
+    <div class= "card-body flex">
+      <div style= "width: 40%;">
+        <h4 style= "margin-bottom: 20px;">Сопоставление столбцов</h4>
+        <p>Идентификатор(название) образца: <b>{{sample}}</b></p>
+        <p>Класс образца(группа, к которой относится образец): <b>{{class}}</b></p>
+        <a class= "btn btn-primary" style= "width: 85%;" href= "change_columns/">Изменить столбцы</a>
+      </div>
+      <div style= "width: 60%;">
+        <p>Признаки: </p>
+        <ul class= "list-group features">
+          {% for feature in features_list %}
+          <li class= "list-group-item">{{feature}}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div> 
+  <div class="table thead-dark table-hover table-sm table-responsive">
+    {{ data_table|safe}}
+  </div>
+{% else %}
+<p>У Вас нет прав на просмотр этих данных.</p>
+{% endif%}
+{% endblock %}

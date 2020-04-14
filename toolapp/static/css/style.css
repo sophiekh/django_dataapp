@@ -1,0 +1,63 @@
+.content {
+  margin-top: 50px;
+}
+
+body {
+  padding: 20px 40px;
+}
+
+.title {
+  margin: 20px 0px;
+}
+
+.inputfile {
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+
+.inputfile + label {
+    display: inline-block;
+    cursor: pointer;
+}
+
+.fa-upload {
+  margin-right: 5px;
+}
+
+.options {
+  margin: 5px 20px;
+}
+ol {
+  margin-left: 20px;
+}
+
+.flex {
+  display: flex;
+  align-content: center;
+  flex-wrap: wrap;
+  margin: 20px 0px;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.features {
+  height: auto;
+  width: 20em;
+  max-height: 15em;
+  overflow-x: hidden;
+}
+
+button.btn-move {
+  margin: 5px 20px;
+}
+
+div.btn-move-features {
+  margin-bottom: 65px;
+}
+

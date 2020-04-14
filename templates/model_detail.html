@@ -1,0 +1,27 @@
+{% extends "base_generic.html" %}
+
+{% block title%}<title>Детали модели</title>{% endblock %}
+{% block content %}
+{% if owner == user %}
+ <a class= "btn btn-primary" href="{% url 'models' pk=dataset_pk %}">Назад к списку моделей</a>
+ <div class="card" style="width: 18rem;">
+  <div class="card-body">
+  <p>Тип модели: {{ modelType }}</p>
+  <p>Дата создания: {{date}}</p>
+  <!-- Additional info -->
+  <p>Результаты:</p>
+  {% if results %} 
+    <ol class= "list-group list-group-flush">
+      {% for result in results %}
+       <li class= "list-item"><a href="{% url 'result_detail' pk=result.pk %}">Посмотреть результаты</a></li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p>Для этой модели еще нет результатов.</p>
+    {% endif %}
+  </div>
+  </div>
+{% else %}
+<p>У Вас нет прав на просмотр этих данных.</p>
+{% endif%}
+{% endblock %}

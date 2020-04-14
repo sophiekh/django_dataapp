@@ -13,10 +13,6 @@ matplotlib==2.2.2
 path.py==11.0.1
 pathlib2==2.3.2
 pylint==1.8.4
-pyodbc==4.0.23
-pyOpenSSL==18.0.0
-pyparsing==2.2.0
-PySocks==1.6.8
 pytest==3.5.1
 pytest-arraydiff==0.2
 pytest-astropy==0.3.0

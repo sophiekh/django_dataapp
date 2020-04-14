@@ -1,5 +1,4 @@
 from django import forms
-import os, path
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError

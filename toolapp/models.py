@@ -20,9 +20,6 @@ class DataModel(models.Model):
       savedModel = models.TextField(default = '')
       date = models.DateTimeField(auto_now_add = True)
 
-  
-
-
 class Result(models.Model):
       dataModel = models.ForeignKey(DataModel, on_delete=models.CASCADE, null=True, blank=True)
       df = models.TextField(default = '')

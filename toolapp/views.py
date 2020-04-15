@@ -4,13 +4,12 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.views.generic import ListView
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 
 from .forms import DatasetForm, DataModelForm, RegistrationForm, ChooseColumnsForm
 from .models import Dataset, DataModel, Result
 
 import pandas as pd, numpy as np, os, json, io, base64
-# from PIL import Image
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
@@ -18,8 +17,7 @@ from sklearn.metrics import silhouette_score, accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, StratifiedKFold
-# import matplotlib.pyplot as plt
-# import seaborn as sns; sns.set(style='white')
+
 
 
 class HomePageView(LoginRequiredMixin, ListView):
@@ -102,40 +100,37 @@ def changeColumnsView(request, pk):
         form = ChooseColumnsForm()
         return render(request, 'change_columns.html', {'form': form, 'columns': columns, 'features': features[0], 'sample': sampleColumn, 'class': classColumn})
 
-# def drawGraphic(X, y = ""):
-#     fig = plt.figure()
-#     if (type(y) == str):
-#         plt.scatter(X[:, 0], X[:, 1])
-#     else:
-#         classes = y.unique()
-#         for i in range (0, classes.size):
-#             plt.scatter(X[y == classes[i], 0], X[y == classes[i], 1], label = classes[i])
-#     plt.legend()
-#     canvas = fig.canvas
-#     buf, size = canvas.print_to_buffer()
-#     image = Image.frombuffer('RGBA', size, buf, 'raw', 'RGBA', 0, 1)
-#     buffer=io.BytesIO()
-#     image.save(buffer,'PNG')
-#     graphic = buffer.getvalue()
-#     graphic = base64.b64encode(graphic)
-#     buffer.close()
-#     return graphic
-
-@login_required
-def datasetPCAView(request, pk):
+def getGraphicData(request, pk):
     dataset = Dataset.objects.get(pk=pk)
     df = pd.read_json(dataset.df).sort_index()
     features = pd.read_json(dataset.featureColumns)
     X_normalized = pd.DataFrame(preprocessing.normalize(preprocessing.scale(df[np.array(features[0])])),
       columns = features)
     X = df[np.array(features[0])]
-    pca = PCA(n_components = 2)
-    X_pca = pca.fit_transform(X)
-    X_normalized_pca = pca.fit_transform(X_normalized)
     y = df[dataset.classColumn] if (dataset.classColumn != "") else ""
-    graphic = drawGraphic(X_pca, y)
-    graphic_normalized = drawGraphic(X_normalized_pca, y)
-    return render(request, 'pca.html',{'graphic': str(graphic)[2:-1], 'graphic_normalized': str(graphic_normalized)[2:-1], 'title': dataset.title, 'description': dataset.description,
+    data = {'standard': makeData(X, y), 'normalized': makeData(X_normalized, y)}
+    data = json.dumps(data)
+    return JsonResponse(data, safe = False)
+
+def makeData(X, y):
+    pca = PCA(n_components = 2)
+    pca.fit(X)
+    X_pca = pd.DataFrame(pca.transform(X), columns=['x', 'y'], index=X.index)
+    if (type(y) == str):
+        data = X_pca.to_dict(orient = "records")
+    else:
+        unique = y.unique()
+        data = {'datasets': []}
+        for i in range(0, len(unique)):
+            class_data = X_pca[y == unique[i]].to_dict(orient = 'records')
+            class_dict = {'label': unique[i], 'data' : class_data}
+            data['datasets'].append(class_dict)
+    return data
+
+@login_required
+def datasetPCAView(request, pk):
+    dataset = Dataset.objects.get(pk=pk)
+    return render(request, 'pca.html',{'title': dataset.title, 'description': dataset.description,
     'owner': dataset.owner, 'pk': dataset.pk, 'date': dataset.date})
 
 @login_required

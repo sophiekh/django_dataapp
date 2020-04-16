@@ -37,13 +37,22 @@ ol {
 
 .flex {
   display: flex;
-  align-content: center;
   flex-wrap: wrap;
-  margin: 20px 0px;
+  /* margin: 20px 0px; */
 }
 
 .flex-column {
   flex-direction: column;
+}
+
+div.btn-move {
+  align-items:center;
+  justify-content: center;
+  margin: 0px 10px;
+}
+
+button.btn-move + button.btn-move {
+  margin-top: 5px;
 }
 
 .features {
@@ -53,11 +62,9 @@ ol {
   overflow-x: hidden;
 }
 
-button.btn-move {
-  margin: 5px 20px;
+.table {
+  margin-top: 10px;
 }
 
-div.btn-move-features {
-  margin-bottom: 65px;
-}
+
 

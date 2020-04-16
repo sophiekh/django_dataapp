@@ -2,8 +2,19 @@
 {% block title %}
     <title>Данные</title>
 {% endblock %}
+{% block navbar%}
+    <nav class="nav nav-pills navigation">
+      {% if user.is_authenticated %}
+        <a class="nav-link active" href="/">Все данные</a>
+        <a class="nav-link" href="./add_dataset/">Загрузить новые данные</a>
+        <a class="nav-link" href="{% url 'logout'%}?next={{request.path}}">Выйти</a>
+      {% else %}
+        <a class="nav-link" href="{% url 'login'%}?next={{request.path}}">Войти</a>
+        <a class="nav-link" href="{% url 'register'%}?next={{request.path}}">Регистрация</a>  
+      {% endif %} 
+    </nav>
+    {% endblock %}
 {% block content %}
-  <a class= "btn btn-primary" href="./add_dataset/">Загрузить новые данные</a>
   <h4 class= "title">Загруженные данные</h4>
   {% if dataset_list %} 
     <div class="flex">

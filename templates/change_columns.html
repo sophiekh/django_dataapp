@@ -1,6 +1,18 @@
 {% extends "base_generic.html" %}
 {% block title %}
-    <title>Изменить колонки</title>
+    <title>Изменить столбцы</title>
+{% endblock %}
+{% block navbar%}
+    <nav class="nav nav-pills navigation">
+      {% if user.is_authenticated %}
+        <a class="nav-link" href="/">Все данные</a>
+        <a class="nav-link active" href="{% url 'dataset_detail' pk=pk %}">Датасет: {{title}}</a>
+        <a class="nav-link" href="{% url 'logout'%}?next={{request.path}}">Выйти</a>
+      {% else %}
+        <a class="nav-link" href="{% url 'login'%}?next={{request.path}}">Войти</a>
+        <a class="nav-link" href="{% url 'register'%}?next={{request.path}}">Регистрация</a>  
+      {% endif %} 
+    </nav>
 {% endblock %}
 {% block content %}
 {% if form.errors %}
@@ -21,7 +33,7 @@
   {% csrf_token %}
   <button type="submit" class= "btn btn-primary" onclick="selectAll();">Сохранить изменения</button>
   <br>
-  <div class="flex">
+  <!-- <div class="flex">
     <div class="form-group" style= "width: 15%; margin-top: 20px;">
       <label for= "id_columns">Неиспользуемые столбцы</label>
       <small class="form-text text-muted">Данные из этих столбцов не будут учитываться при построении модели.</small>
@@ -46,6 +58,7 @@
       </div>
     </div>
     <div class=" flex flex-column" style= "width: 40%;">
+      <div class="flex flex-column"></div>
       <div class="form-group" >
         <label for= "id_features">Признаки</label>
         <small class="form-text text-muted">По данным из этих столбцов будет строиться модель.</small>
@@ -66,7 +79,57 @@
           <input type= "text" id= "id_classColumn" name="classColumn" class="form-control" value= "{{class}}" readonly>
         </div>
     </div>  
-  </div>
+  </div> -->
+  <div class="flex" style = "margin-top: 20px;">
+    <div class="form-group" style= "width: 200px;">
+      <label for= "id_columns">Неиспользуемые столбцы</label>
+      <small class="form-text text-muted">Данные из этих столбцов не будут учитываться при построении модели.</small>
+      <select id= "id_columns" class="form-control" name="all_columns" multiple style= "height: 500px;">
+        {% for column in columns%}
+        <option value="{{column}}">{{column}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="flex flex-column" style= "width: 500px;">
+      <div class="form-input flex">
+        <div class="btn-move flex flex-column">
+          <button class= "btn btn-secondary btn-move" type="button" onclick="MoveFeatureLeft();"><i class= "fa fa-angle-double-left"></i></button>
+          <button class= "btn btn-secondary btn-move" type="button" onclick="MoveFeatureRight();"><i class= "fa fa-angle-double-right"></i></button>
+        </div>
+        <div class="form-group" style= "width: 300px;">
+          <label for= "id_features">Признаки</label>
+          <small class="form-text text-muted">По данным из этих столбцов будет строиться модель.</small>
+          <select id= "id_features" class="form-control" name="features" multiple style= "height: 200px;">
+            {% for feature in features%}
+            <option value="{{feature}}">{{feature}}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-input flex">
+        <div class="btn-move flex flex-column">
+          <button class= "btn btn-secondary btn-move" type="button" onclick="MoveLeft('id_sampleColumn');"><i class= "fa fa-angle-double-left"></i></button>
+          <button class= "btn btn-secondary btn-move" type="button" onclick="MoveRight('id_sampleColumn');"><i class= "fa fa-angle-double-right"></i></button>
+        </div>
+        <div class="form-group" style= "width: 300px;">
+          <label for= "id_sampleColumn">Шифр образца</label>
+          <small class="form-text text-muted">Этот столбец содержит идентификаторы образцов. Если такого столбца в датасете нет, оставьте поле пустым.</small>
+          <input type= "text" id= "id_sampleColumn" name="sampleColumn" class="form-control" value= "{{sample}}" readonly style="width: 300px;">
+        </div>
+      </div>
+      <div class="form-input flex">
+        <div class="btn-move flex flex-column">
+          <button class= "btn btn-secondary btn-move" type="button" onclick="MoveLeft('id_classColumn');"><i class= "fa fa-angle-double-left"></i></button>
+        <button class= "btn btn-secondary btn-move" type="button" onclick="MoveRight('id_classColumn');"><i class= "fa fa-angle-double-right"></i></button>
+        </div>
+        <div class="form-group" style= "width: 300px;">
+          <label for= "id_classColumn">Класс(название группы)</label>
+          <small class="form-text text-muted">Этот столбец содержит группу, к которой относится образец. Если такого столбца в датасете нет, оставьте поле пустым.</small>
+          <input type= "text" id= "id_classColumn" name="classColumn" class="form-control" value= "{{class}}" readonly>
+        </div>
+      </div> 
+    </div>    
+  </div>  
 </form>
 <script>
   function MoveFeatureLeft()

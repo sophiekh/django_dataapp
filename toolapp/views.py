@@ -75,7 +75,7 @@ def datasetDetailView(request, pk):
     sampleColumn = dataset.sampleColumn
     classColumn = dataset.classColumn
     df_html = df.to_html()
-    context = {'data_table': df_html, 'title': dataset.title, 'description': dataset.description, 
+    context = {'data_table': df_html, 'pk': dataset.pk, 'title': dataset.title, 'description': dataset.description, 
     'owner': dataset.owner, 'date': dataset.date, 'sample': sampleColumn, 'class': classColumn, 'features_list': features_list}
     return render(request, "dataset_detail.html", context)
 
@@ -95,10 +95,10 @@ def changeColumnsView(request, pk):
             dataset.featureColumns = pd.Series(form.cleaned_data['features']).to_json(orient='values')
             dataset.save()
             return HttpResponseRedirect("/toolapp/dataset/" + str(pk))
-        return render(request, 'change_columns.html', {'form': form, 'columns': columns, 'features': features[0], 'sample': sampleColumn, 'class': classColumn})
+        return render(request, 'change_columns.html', {'form': form, 'columns': columns, 'features': features[0], 'sample': sampleColumn, 'class': classColumn, 'pk': dataset.pk, 'title': dataset.title})
     else:
         form = ChooseColumnsForm()
-        return render(request, 'change_columns.html', {'form': form, 'columns': columns, 'features': features[0], 'sample': sampleColumn, 'class': classColumn})
+        return render(request, 'change_columns.html', {'form': form, 'columns': columns, 'features': features[0], 'sample': sampleColumn, 'class': classColumn, 'pk': dataset.pk, 'title': dataset.title,})
 
 def getGraphicData(request, pk):
     dataset = Dataset.objects.get(pk=pk)
@@ -194,13 +194,13 @@ def createModelView(request, pk):
             new_model = DataModel.objects.create(dataset = dataset, modelType = form.cleaned_data['modelType'])
             new_result = Result.objects.create(dataModel = new_model, df = resultJSON, score = score)
             return HttpResponseRedirect("/toolapp/result/" + str(new_result.pk))
-        return render(request, 'create_model.html', {'form': form})
+        return render(request, 'create_model.html', {'form': form, 'dataset_pk': dataset.pk, 'samples': df.shape[0], 'class': classChosen})
     else:
         form = DataModelForm()
         dataset = Dataset.objects.get(pk = pk)
         df = pd.read_json(dataset.df).sort_index()
         classChosen = False if (dataset.classColumn == "") else True
-        return render(request, 'create_model.html', {'form': form, 'samples': df.shape[0], 'class': classChosen})
+        return render(request, 'create_model.html', {'form': form, 'samples': df.shape[0], 'class': classChosen, 'dataset_pk': dataset.pk,})
 
 @login_required
 def modelsListView(request, pk):
@@ -212,7 +212,7 @@ def modelsListView(request, pk):
 def modelDetailView(request, pk):
     model = DataModel.objects.get(pk = pk)
     results = Result.objects.filter(dataModel = model)
-    return render(request, 'model_detail.html', {'dataset_pk': model.dataset.pk, 'results': results, 'modelType': model.modelType, 'owner': model.dataset.owner, 'date': model.date})
+    return render(request, 'model_detail.html', {'model_pk': pk, 'dataset_pk': model.dataset.pk, 'title': model.dataset.title, 'results': results, 'modelType': model.modelType, 'owner': model.dataset.owner, 'date': model.date})
 
 @login_required
 def resultDetailView(request, pk):
@@ -221,7 +221,7 @@ def resultDetailView(request, pk):
     model_pk = result.dataModel.pk
     df = pd.read_json(result.df).sort_index()
     df_html = df.to_html()
-    context = {'result_pk': pk, 'model_pk': model_pk, 'data_table': df_html, 'title': dataset.title, 'description': dataset.description, 
+    context = {'dataset_pk': dataset.pk, 'result_pk': pk, 'model_pk': model_pk, 'data_table': df_html, 'title': dataset.title, 'description': dataset.description, 
     'owner': dataset.owner, 'model_date': result.date, 'type': result.dataModel.modelType, 'date': dataset.date, 'score': result.score}
     return render(request, "result_detail.html", context)
 

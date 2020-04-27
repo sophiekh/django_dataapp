@@ -15,3 +15,4 @@ XlsxWriter==1.0.4
 xlrd==1.1.0
 django-rq==2.3.1
 six==1.11.0
+redis==3.4.1

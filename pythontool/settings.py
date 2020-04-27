@@ -91,14 +91,19 @@ DATABASES = {
     }
 }
 RQ_QUEUES = {
-    'high': {
-        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379/0'), # If you're on Heroku
-        'DEFAULT_TIMEOUT': 500,
-    },
     'low': {
         'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379/0'),
         'DB': 0,
     }
+}
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "asgi_redis.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.environ.get('REDISCLOUD_URL', 'redis://localhost:6379')],
+        },
+        "ROUTING": "chat.routing.channel_routing",
+    },
 }
 
 

@@ -92,7 +92,9 @@ DATABASES = {
 }
 RQ_QUEUES = {
     'low': {
-        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379/0'),
+        'HOST': 'localhost', 
+        'PORT': '6379', 
+        'URL': os.getenv('REDISTOGO_URL', 'redis://localhost:6379'),
         'DB': 0,
     }
 }

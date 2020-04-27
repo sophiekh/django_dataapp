@@ -1,2 +1,2 @@
 web: gunicorn pythontool.wsgi
-worker: python toolapp/manage.py rqworker low
+worker: python django-dataapp/manage.py rqworker low

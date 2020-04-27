@@ -13,4 +13,4 @@ seaborn==0.8.1
 whitenoise==5.0.1
 XlsxWriter==1.0.4
 xlrd==1.1.0
-
+django-rq==1.2.0

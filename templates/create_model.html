@@ -18,7 +18,7 @@
 {% endblock %}
 {% block content %}
   <div class= "flex">
-    <form style= "width: 35%;" class="model_form" method="post"  enctype="multipart/form-data">
+    <form style= "width: 35%;" id="model_form" method="POST">
       <h4>Создать модель</h4>
       {% csrf_token %}
       <div class="form-group col-md-20">
@@ -64,7 +64,63 @@
 {% endblock %}
 {% block javascript %}
 <script>
-  document.getElementById("btn-submit").addEventListener("click", showPreloader);
+  $(document).on('submit', '#model_form',function(e){
+    e.preventDefault()
+    $.ajax({
+        type:'POST',
+        url:'{% url "add_model" pk=dataset_pk%}',
+        data:{
+            modelType:$('#id_modelType').val(),
+            minClusters:$('#id_minClusters').val(),
+            maxClusters:$('#id_maxClusters').val(),
+            parameterSearchMethod:$('#id_parameterSearchMethod').val(),
+            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+            action: 'post'
+        },
+        success:function(data){
+            console.log(data);
+            showPreloader();
+            waitForJobResult(data);
+        },
+        error : function(xhr,errmsg,err) {
+        console.log(xhr.status + ": " + xhr.responseText); 
+        }
+    });
+  });
+  function checkJobResult(job_id, timerId, result_id) {
+    $.ajax({
+      type:'GET',
+      url: '/toolapp/job_info/' + job_id + '/',
+      success: function(job_info){
+        let job_status = job_info.status;
+        if (job_status == 'finished' || job_status == 'failed'){ 
+          clearTimeout(timerId);
+          if (job_status == 'finished'){
+            showResultLink(result_id);
+          }
+          else showErrorMessage();
+        }
+      },
+      error : function(xhr,errmsg,err) {
+        console.log(xhr.status + ": " + xhr.responseText); 
+      }
+    });
+  }
+  function waitForJobResult(data) {
+    let job_id = data.job_id;
+    let result_id = data.result_pk;
+    let timerId = setInterval(() => checkJobResult(job_id, timerId, result_id) , 10000);
+  }
+  function showResultLink(result_id){
+    let btn = document.getElementById("btn-submit");
+    btn.textContent = "Модель построена.";
+    document.getElementById("message").innerHTML = "<a href='/toolapp/result/" + result_id + "'>Результаты</a>";
+  }
+  function showErrorMessage() {
+    let btn = document.getElementById("btn-submit");
+    btn.textContent = "Ошибка";
+    document.getElementById("message").innerHTML = "Не удалось построить модель.";
+  }
   document.getElementById("btn-params").addEventListener("click", showParameters);
   document.getElementById("id_modelType").addEventListener("change", changeParameters);
   function showPreloader() {
@@ -109,7 +165,7 @@
         }
         break;
     }  
-  }
+  } 
 </script>
 {% endblock %}
 

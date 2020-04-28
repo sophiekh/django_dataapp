@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from .views import HomePageView, register, getGraphicData, computingModelView, createDatasetView, resultDownloadView, deleteDatasetView, deleteModelView, datasetDetailView, datasetPCAView, createModelView, modelsListView, modelDetailView, resultDetailView, changeColumnsView
+from .views import HomePageView, register, getGraphicData, getJobInfo, createDatasetView, resultDownloadView, deleteDatasetView, deleteModelView, datasetDetailView, datasetPCAView, createModelView, modelsListView, modelDetailView, resultDetailView, changeColumnsView
  
  
 urlpatterns = [
@@ -13,7 +13,7 @@ urlpatterns = [
     path('dataset/<int:pk>/pca/', datasetPCAView, name='pca'),
     path('dataset/<int:pk>/pca/api/data/', getGraphicData, name='data'),
     path('dataset/<int:pk>/add_model/', createModelView, name='add_model'),
-    path('dataset/<int:pk>/computing/', computingModelView, name = 'computing'),
+    path('job_info/<str:id>/', getJobInfo, name = 'job_info'),
     path('delete_model/<int:pk>/', deleteModelView, name='delete_model'),
     path('dataset/<int:pk>/models/', modelsListView, name = 'models'),
     path('model/<int:pk>/', modelDetailView, name = 'model_detail'),

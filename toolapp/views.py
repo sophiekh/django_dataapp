@@ -19,6 +19,10 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, StratifiedKFold
 import django_rq
 from django_rq import job
+from redis import Redis
+from rq.job import Job
+from rq import get_current_job
+import time
 
 class HomePageView(LoginRequiredMixin, ListView):
     model = Dataset
@@ -135,8 +139,10 @@ def datasetPCAView(request, pk):
     return render(request, 'pca.html',{'title': dataset.title, 'description': dataset.description,
     'owner': dataset.owner, 'pk': dataset.pk, 'date': dataset.date})
 
-def buildModel(dataset_pk, modelType, parameters):
+def buildModel(dataset_pk, model_pk, result_pk, modelType, parameters):
     dataset = Dataset.objects.get(pk = dataset_pk)
+    new_model = DataModel.objects.get(pk = model_pk)
+    new_result = Result.objects.get(pk = result_pk)
     df = pd.read_json(dataset.df).sort_index()
     features = pd.read_json(dataset.featureColumns)
     X = pd.DataFrame(preprocessing.normalize(preprocessing.scale(df[np.array(features[0])])),
@@ -189,87 +195,41 @@ def buildModel(dataset_pk, modelType, parameters):
         resultDf = result.join(resultDf).sort_index()
         score = accuracy_score(y, resultDf['Определенный_моделью_класс'])       
     resultJSON = resultDf.to_json()
-    new_model = DataModel.objects.create(dataset = dataset, modelType = modelType)
-    new_result = Result.objects.create(dataModel = new_model, df = resultJSON, score = score)
+    new_result.df = resultJSON
+    new_result.score = score
+    new_result.save()
 
 @login_required
 def createModelView(request, pk):
     if request.method == 'POST':
-        form = DataModelForm(request.POST)
-        if form.is_valid():
-            if (form.cleaned_data['modelType'] == "Кластеризация методом k-средних"):
-                parameters = {'minClusters': form.cleaned_data["minClusters"], 'maxClusters': form.cleaned_data["maxClusters"]}
-            elif (form.cleaned_data['modelType'] == "Классификация деревом решений"):
-                parameters = {'parameterSearchMethod': form.cleaned_data["parameterSearchMethod"]}
-            queue = django_rq.get_queue('low')
-            queue.enqueue(buildModel, dataset_pk = pk,  modelType = form.cleaned_data['modelType'], parameters = parameters)
-            # dataset = Dataset.objects.get(pk = pk)
-            # df = pd.read_json(dataset.df).sort_index()
-            # features = pd.read_json(dataset.featureColumns)
-            # X = pd.DataFrame(preprocessing.normalize(preprocessing.scale(df[np.array(features[0])])),
-            #     columns = features)
-            # resultDf = pd.DataFrame(df[np.array(features[0])])
-            # if (dataset.classColumn != ""):
-            #     resultDf.insert(0, dataset.classColumn, df[dataset.classColumn])
-            # if (dataset.sampleColumn != ""):
-            #     resultDf.insert(0, dataset.sampleColumn, df[dataset.sampleColumn])        
-            # if (form.cleaned_data['modelType'] == "Кластеризация методом k-средних"):
-            #     numeric_columns = X.select_dtypes(include=np.number).columns.tolist()
-            #     X = X[numeric_columns].fillna(X[numeric_columns].mean())
-            #     best_k = 2
-            #     best_score = -1
-            #     clusters = np.zeros(X.shape[0])
-            #     for k in range (form.cleaned_data["minClusters"], form.cleaned_data["maxClusters"]):
-            #         model = KMeans(k, random_state = 0).fit(X)
-            #         curr_score = silhouette_score(X, model.labels_)
-            #         if (curr_score > best_score):
-            #             best_k = k
-            #             best_score = curr_score
-            #             clusters = model.labels_
-            #     resultDf.insert(0,'Кластер', clusters)
-            #     score = best_score
-            # elif (form.cleaned_data['modelType'] == "Классификация деревом решений"):
-            #     y = pd.DataFrame(df[dataset.classColumn])
-            #     numeric_columns = X.select_dtypes(include=np.number).columns.tolist()
-            #     other_columns = X.select_dtypes(exclude=np.number).columns.tolist()
-            #     X[numeric_columns].fillna(X[numeric_columns].mean(),inplace = True)
-            #     if (other_columns):
-            #         X[other_columns].fillna(X[other_columns].mode().iloc[0],inplace = True)
-            #     (unique, counts) = np.unique(y, return_counts=True)
-            #     tree = DecisionTreeClassifier()
-            #     tree_parameters = {'min_samples_leaf': range(2, 5),
-            #        'max_depth': range(2, X.shape[0] ),
-            #        'max_features': range(2, features.size + 1)}
-            #     if (form.cleaned_data["parameterSearchMethod"] == "Randomized search"):
-            #         tree_grid = RandomizedSearchCV(tree, tree_parameters,cv=counts.min(), n_jobs=-1,verbose=False)
-            #     else:
-            #          tree_grid = GridSearchCV(tree, tree_parameters,cv=counts.min(), n_jobs=-1,verbose=False)
-            #     tree_grid.fit(X, y)       
-            #     skf = StratifiedKFold(n_splits=counts.min())
-            #     skf.split(X, y)
-            #     tree = tree_grid.best_estimator_
-            #     result = pd.DataFrame()
-            #     for train_index, test_index in skf.split(X, y):
-            #         tree.fit(X.iloc[train_index], y.iloc[train_index])
-            #         predictions = pd.DataFrame(tree.predict(X.iloc[test_index]), test_index, columns = ['Определенный_моделью_класс'])
-            #         result = result.append(predictions)
-            #     resultDf = result.join(resultDf).sort_index()
-            #     score = accuracy_score(y, resultDf['Определенный_моделью_класс'])       
-            # resultJSON = resultDf.to_json()
-            # new_model = DataModel.objects.create(dataset = dataset, modelType = form.cleaned_data['modelType'])
-            # new_result = Result.objects.create(dataModel = new_model, df = resultJSON, score = score)
-            return HttpResponseRedirect("/toolapp/dataset/" + str(pk) + '/computing/')
-        return render(request, 'create_model.html', {'form': form, 'dataset_pk': dataset.pk, 'samples': df.shape[0], 'class': classChosen})
+        modelType = request.POST.get('modelType')
+        if (modelType == "Кластеризация методом k-средних"):
+            parameters = {'minClusters': int(request.POST.get("minClusters")), 'maxClusters': int(request.POST.get("maxClusters"))}
+        elif (modelType == "Классификация деревом решений"):
+            parameters = {'parameterSearchMethod': request.POST.get("parameterSearchMethod")}
+        dataset = Dataset.objects.get(pk = pk)
+        new_model = DataModel.objects.create(dataset = dataset, modelType = modelType)
+        new_result = Result.objects.create(dataModel = new_model, df = '', score = 0)
+        model_pk = new_model.pk
+        result_pk = new_result.pk
+        queue = django_rq.get_queue('low')
+        job = queue.enqueue(buildModel, args = (pk, model_pk, result_pk, modelType, parameters), job_timeout='40m', result_ttl=86400)    
+        return JsonResponse({"job_id": job.id, 'result_pk': new_result.pk})
     else:
         form = DataModelForm()
         dataset = Dataset.objects.get(pk = pk)
         df = pd.read_json(dataset.df).sort_index()
         classChosen = False if (dataset.classColumn == "") else True
-        return render(request, 'create_model.html', {'form': form, 'samples': df.shape[0], 'class': classChosen, 'dataset_pk': dataset.pk,})
+        return render(request, 'create_model.html', {'form': form, 'samples': df.shape[0], 'class': classChosen, 'dataset_pk': dataset.pk})
 
 @login_required
-def computingModelView(request, pk):
-    return render(request, 'computing_model.html')
+def getJobInfo(request, id):
+    redis = Redis()
+    redis_url = os.getenv('REDISTOGO_URL', 'redis://localhost:6379')
+    redis = redis.from_url(redis_url)
+    job = Job.fetch(id, connection=redis)
+    job_status =  job.get_status()
+    return JsonResponse({'status': job_status})
 
 @login_required
 def modelsListView(request, pk):

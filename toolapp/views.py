@@ -179,7 +179,7 @@ def buildModel(dataset_pk, model_pk, result_pk, modelType, parameters):
         tree_parameters = {'min_samples_leaf': range(2, 5),
             'max_depth': range(2, X.shape[0] ),
             'max_features': range(2, features.size + 1)}
-        if (parameters["parameterSearchMethod"] == "Randomized search"):
+        if (parameters["parameterSearchMethod"] == "Случайный поиск"):
             tree_grid = RandomizedSearchCV(tree, tree_parameters,cv=counts.min(), n_jobs=-1,verbose=False)
         else:
                 tree_grid = GridSearchCV(tree, tree_parameters,cv=counts.min(), n_jobs=-1,verbose=False)
@@ -220,7 +220,7 @@ def createModelView(request, pk):
         dataset = Dataset.objects.get(pk = pk)
         df = pd.read_json(dataset.df).sort_index()
         classChosen = False if (dataset.classColumn == "") else True
-        return render(request, 'create_model.html', {'form': form, 'samples': df.shape[0], 'class': classChosen, 'dataset_pk': dataset.pk})
+        return render(request, 'create_model.html', {'form': form, 'samples': df.shape[0], 'class': classChosen, 'dataset_pk': dataset.pk, 'title': dataset.title})
 
 @login_required
 def getJobInfo(request, id):

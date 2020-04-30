@@ -44,14 +44,15 @@
         <div style = "display: none;" class="model2 form-group col-md-10">
           <label for="id_parameterSearchMethod">Метод поиска параметров:</label>
           <select class= "form-control" name="parameterSearchMethod" id="id_parameterSearchMethod">
-            <option value="Randomized search">Randomized search</option>       
-            <option value="Grid search">Grid search</option>        
+            <option value="Randomized search">Случайный поиск</option>       
+            <option value="Grid search">Поиск по сетке</option>        
           </select>
         </div>
       </div>
       <button style= "margin-top: 20px;" class= "btn btn-primary" id= "btn-submit" type="submit">Выбрать</button>
       <div id= "message" class="alert alert-info" style= "display: none;">
-        Идет построение модели...<br>Этот процесс может занять несколько минут, пожалуйста, подождите. После завершения Вы будете перенаправлены на страницу с результатами.
+        Идет построение модели...<br>Этот процесс может занять несколько минут, пожалуйста, подождите. После завершения Вам будет предоставлена ссылка на страницу с результатами.
+        Вы можете покинуть эту страницу, после завершения построенная модель с результатами появится в списке моделей текущего датасета.
       </div>
     </form>
     <div class= "side-info card" style= "width: 60%; margin-left: 10px;">

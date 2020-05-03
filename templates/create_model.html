@@ -25,8 +25,10 @@
         <label for="id_modelType">Тип модели:</label>
         <select class= "form-control" name="modelType" id="id_modelType">
           <option value="Кластеризация методом k-средних">Кластеризация методом k-средних</option>
+          <option value="Кластеризация методом DBSCAN">Кластеризация методом DBSCAN</option>
           {% if class %}
           <option value="Классификация деревом решений">Классификация с помощью дерева решений</option>
+          <option value="Классификация случайным лесом">Классификация с помощью случайного леса</option>
           {% endif %}
         </select>
       </div>
@@ -41,7 +43,8 @@
           <label for="id_maxClusters">Максимальное количество кластеров:</label>
           <input class= "form-control" type="number" name="maxClusters" required="" id="id_maxClusters" min = "2" value = "{{samples}}" max = "{{samples}}">
         </div>
-        <div style = "display: none;" class="model2 form-group col-md-10">
+        <div class= "model2" style = "display: none;"> У этого типа модели нет дополнительных параметров.</div>
+        <div style = "display: none;" class="model3 form-group col-md-10">
           <label for="id_parameterSearchMethod">Метод поиска параметров:</label>
           <select class= "form-control" name="parameterSearchMethod" id="id_parameterSearchMethod">
             <option value="Randomized search">Случайный поиск</option>       
@@ -148,6 +151,7 @@
     value = document.getElementById("id_modelType").value;
     let model1 = document.querySelectorAll(".model1");
     let model2 = document.querySelectorAll(".model2");
+    let model3 = document.querySelectorAll(".model3");
     switch(value) {
       case "Кластеризация методом k-средних":
         for (let elem of model1) {
@@ -156,13 +160,31 @@
         for (let elem of model2) {
           elem.style.display = "none";
         }
+        for (let elem of model3) {
+            elem.style.display = "none";
+        }
+        break;
+      case "Кластеризация методом DBSCAN":
+        for (let elem of model1) {
+          elem.style.display = "none";
+        }
+        for (let elem of model2) {
+          elem.style.display = "block";
+        }
+        for (let elem of model3) {
+          elem.style.display = "none";
+        }
         break;
       case "Классификация деревом решений":
-        for (let elem of model2) {
-            elem.style.display = "block";
-        }
+      case "Классификация случайным лесом":
         for (let elem of model1) {
             elem.style.display = "none";
+        }
+        for (let elem of model2) {
+            elem.style.display = "none";
+        }
+        for (let elem of model3) {
+            elem.style.display = "block";
         }
         break;
     }  

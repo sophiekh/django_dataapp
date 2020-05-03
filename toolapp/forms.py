@@ -16,7 +16,9 @@ class DatasetForm(forms.Form):
 
 class DataModelForm(forms.Form):
     modelType = forms.ChoiceField(choices = [("Кластеризация методом k-средних", "Кластеризация методом k-средних" ),
-    ("Классификация деревом решений", "Классификация деревом решений")], label = "Тип модели")
+    ("Кластеризация методом DBSCAN", "Кластеризация методом DBSCAN" ),
+    ("Классификация деревом решений", "Классификация деревом решений"),
+    ("Классификация случайным лесом", "Классификация случайным лесом")], label = "Тип модели")
     minClusters = forms.IntegerField()
     maxClusters = forms.IntegerField()
     parameterSearchMethod = forms.ChoiceField(choices = [("Randomized search", "Randomized search" ),

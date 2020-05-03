@@ -280,7 +280,7 @@ def createModelView(request, pk):
         model_pk = new_model.pk
         result_pk = new_result.pk
         queue = django_rq.get_queue('low')
-        job = queue.enqueue(buildModel, args = (pk, model_pk, result_pk, modelType, parameters), job_timeout='40m', result_ttl=86400)    
+        job = queue.enqueue(buildModel, args = (pk, model_pk, result_pk, modelType, parameters), job_timeout='60m', result_ttl=86400)    
         return JsonResponse({"job_id": job.id, 'result_pk': new_result.pk})
     else:
         form = DataModelForm()

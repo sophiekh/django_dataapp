@@ -24,8 +24,8 @@
   <section class= "dataset-info card" style="width: 30%;">
     <div class= "card-body">
       <h4 class= "title">Информация о датасете</h4>
-      <p>Название: {{ title }}</p>
-      <p>Описание: {{ description }}</p>
+      <p>{{ title }}</p>
+      <p class= "description">{{ description }}</p>
       <p>Дата загрузки: {{date}}</p>
     </div>
   </section>
@@ -51,9 +51,13 @@
     </div>
   </div>
 </div> 
-<div class="table thead-dark table-hover table-sm table-responsive">
+<div class = "data-table table-responsive">
   {{ data_table|safe}}
 </div>
+<script>
+  let data_table = document.querySelector('table');
+  data_table.className = "table table-hover table-sm";
+</script>
 {% else %}
 <p>У Вас нет прав на просмотр этих данных.</p>
 {% endif%}

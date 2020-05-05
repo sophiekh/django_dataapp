@@ -21,13 +21,15 @@
   {% if models %} 
     <div class= "flex">
       {% for dataModel in models %}
-        <div class="card" style="width: 25%;">
+        <div class="dataset-card card">
           <div class= "card-body">
-            <p>Тип: {{ dataModel.modelType }}</p>
-            <p>Дата создания: {{dataModel.date}}</p>
+            <p class= "description">Тип: {{ dataModel.modelType }}</p>
           </div>
-        <a class= "btn btn-info options" href="{% url 'model_detail' pk=dataModel.pk %}">Детали</a>
-        <a class= "btn btn-info options" href="{% url 'delete_model' pk=dataModel.pk %}" onclick="return confirm('Подтвердите удаление');">Удалить</a>
+          <a class= "btn btn-info options" href="{% url 'model_detail' pk=dataModel.pk %}">Детали</a>
+          <a class= "btn btn-info options" href="{% url 'delete_model' pk=dataModel.pk %}" onclick="return confirm('Подтвердите удаление');">Удалить</a>
+          <div class="date text-muted">
+            {{dataModel.date}}
+          </div>
         </div>
       {% endfor %}
     </div>

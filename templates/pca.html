@@ -17,20 +17,23 @@
 {% block content %}
 {% if owner == user %}
 <div class="flex">
-  <section class= "dataset-info card" style="width: 35%;">
+  <div class= "dataset-info card" style="width: 25%;">
     <div class= "card-body">
-      <p>Название: {{ title }}</p>
-      <p>Описание: {{ description }}</p>
+      <h4 class= "title">Информация о датасете</h4>
+      <p>{{ title }}</p>
+      <p>{{ description }}</p>
       <p>Дата загрузки: {{date}}</p>
-      <p>Тут будет описание метода главных компонент.</p>
+      <div class="alert alert-info" role="alert">
+        Чтобы получить корректные результаты, проверьте, что столбцы сопоставлены правильно.
+      </div>
     </div>
-  </section>
-  <section class= "dataset-info card" style="width: 65%;">
-    <div class= "card-body">
-      <canvas id="scatter_normalized" style = "max-width:600px;max-height:900px" width = '500' height = '500'></canvas>
-      <canvas id="scatter" style = "max-width:600px;max-height:900px" width = '500' height = '500'></canvas>
+  </div>
+  <div class= "card" style="width: auto;">
+    <div class= "card-body flex">
+      <canvas id="scatter_normalized" style = "max-width:400px;max-height:500px" width = '500' height = '500'></canvas>
+      <canvas id="scatter" style = "max-width:400px;max-height:500px" width = '500' height = '500'></canvas>
     </div>
-  </section>  
+  </div>  
 </div>
 {% else %}
 <p>У Вас нет прав на просмотр этих данных.</p>
@@ -38,6 +41,8 @@
 {% endblock %}
 {% block javascript %}
 <script>
+  Chart.defaults.global.defaultFontColor = 'black';
+  Chart.defaults.global.defaultFontFamily = 'Helvetica Neue';
   var endpoint1 = "{% url 'data' pk=pk %}";
   let chart_data = [];
   $.ajax({
@@ -75,7 +80,9 @@
           title: {
             display: true,
             text: label,
-            fontSize: 18
+            fontSize: 18,
+            position: 'bottom',
+            fontStyle: 'normal'
         }
       }
     });

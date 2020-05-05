@@ -1,13 +1,29 @@
 .content {
   margin-top: 50px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  overflow-x: hidden;
+  position: relative
 }
 
 body {
   padding: 20px 40px;
+  
+}
+
+p {
+  text-align: justify;
+  font-size: 16px;
 }
 
 .title {
   margin: 20px 0px;
+}
+
+.dataset-card {
+  margin: 15px 0px;
 }
 
 .inputfile {
@@ -38,7 +54,6 @@ ol {
 .flex {
   display: flex;
   flex-wrap: wrap;
-  /* margin: 20px 0px; */
 }
 
 .flex-column {
@@ -58,13 +73,36 @@ button.btn-move + button.btn-move {
 .features {
   height: auto;
   width: 20em;
-  max-height: 15em;
+  max-height: 20em;
   overflow-x: hidden;
 }
 
-.table {
-  margin-top: 10px;
+.set_columns {
+  width: 70%;
 }
 
+.set_columns > div {
+  justify-content: space-around;
+}
 
+.data-table {
+  overflow-y: auto;
+  height: 400px;
+  margin-top: 15px;
+}
+
+th, td {
+  text-align: center !important;
+}
+
+.btn-container {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+canvas {
+  margin: 10px;
+}
 

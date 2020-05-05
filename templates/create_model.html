@@ -17,54 +17,113 @@
     </nav>
 {% endblock %}
 {% block content %}
-  <div class= "flex">
-    <form style= "width: 35%;" id="model_form" method="POST">
-      <h4>Создать модель</h4>
-      {% csrf_token %}
-      <div class="form-group col-md-20">
-        <label for="id_modelType">Тип модели:</label>
-        <select class= "form-control" name="modelType" id="id_modelType">
-          <option value="Кластеризация методом k-средних">Кластеризация методом k-средних</option>
-          <option value="Кластеризация методом DBSCAN">Кластеризация методом DBSCAN</option>
-          {% if class %}
-          <option value="Классификация деревом решений">Классификация с помощью дерева решений</option>
-          <option value="Классификация случайным лесом">Классификация с помощью случайного леса</option>
-          {% endif %}
-        </select>
-      </div>
-      <button style= "margin-left: 15px;" class= "btn btn-light" id= "btn-params" type= "button">Дополнительные параметры<i style= "margin-left: 2px; font-size: 14px; font-weight: lighter" id= "btn-icon" class="fa fa-chevron-down"></i></button>
-      <br>
-      <div style= "display:none" id= "model-params">
-        <div class="model1 form-group col-md-6">
-          <label for="id_minClusters">Минимальное количество кластеров:</label>
-          <input class= "form-control" type="number" name="minClusters" required="" id="id_minClusters" min = "2" value= "2" max = "{{samples}}">
+<div class="container"> 
+  <div class="row">
+    <div class="col-xl-5">
+      <div class="card">
+        <div class="card-body">
+          <form id="model_form" method="POST">
+            <h4 class= "title">Создать модель</h4>
+            {% csrf_token %}
+            <div class="form-group col-md-20">
+              <label for="id_modelType">Тип модели:</label>
+              <select class= "form-control" name="modelType" id="id_modelType">
+                <option value="Кластеризация методом k-средних">Кластеризация методом k-средних</option>
+                <option value="Кластеризация методом DBSCAN">Кластеризация методом DBSCAN</option>
+                {% if class %}
+                <option value="Классификация деревом решений">Классификация с помощью дерева решений</option>
+                <option value="Классификация случайным лесом">Классификация с помощью случайного леса</option>
+                {% endif %}
+              </select>
+            </div>
+            <button style= "margin-left: 15px;" class= "btn btn-light" id= "btn-params" type= "button">Дополнительные параметры<i style= "margin-left: 2px; font-size: 14px; font-weight: lighter" id= "btn-icon" class="fa fa-chevron-down"></i></button>
+            <br>
+            <div style= "display:none" id= "model-params">
+              <div class="model1 form-group col-md-6">
+                <label for="id_minClusters">Минимальное количество кластеров:</label>
+                <input class= "form-control" type="number" name="minClusters" required="" id="id_minClusters" min = "2" value= "2" max = "{{samples}}">
+              </div>
+              <div class="model1 form-group col-md-6">
+                <label for="id_maxClusters">Максимальное количество кластеров:</label>
+                <input class= "form-control" type="number" name="maxClusters" required="" id="id_maxClusters" min = "2" value = "{{samples}}" max = "{{samples}}">
+              </div>
+              <div class= "model2" style = "display: none;"> У этого типа модели нет дополнительных параметров.</div>
+              <div style = "display: none;" class="model3 form-group col-md-10">
+                <label for="id_parameterSearchMethod">Метод поиска параметров:</label>
+                <select class= "form-control" name="parameterSearchMethod" id="id_parameterSearchMethod">
+                  <option value="Randomized search">Случайный поиск</option>       
+                  <option value="Grid search">Поиск по сетке</option>        
+                </select>
+              </div>
+            </div>
+            <button style= "margin-top: 20px;" class= "btn btn-primary" id= "btn-submit" type="submit">Выбрать</button>
+            <div id= "message" class="alert alert-info" style= "display: none;">
+              Идет построение модели...<br>Этот процесс может занять некоторое время. 
+              После завершения ниже появится ссылка на страницу с результатами.<br>
+              Вы можете покинуть эту страницу, построенная модель с результатами будет
+               отображена в списке моделей текущего датасета.
+            </div>
+          </form>
         </div>
-        <div class="model1 form-group col-md-6">
-          <label for="id_maxClusters">Максимальное количество кластеров:</label>
-          <input class= "form-control" type="number" name="maxClusters" required="" id="id_maxClusters" min = "2" value = "{{samples}}" max = "{{samples}}">
-        </div>
-        <div class= "model2" style = "display: none;"> У этого типа модели нет дополнительных параметров.</div>
-        <div style = "display: none;" class="model3 form-group col-md-10">
-          <label for="id_parameterSearchMethod">Метод поиска параметров:</label>
-          <select class= "form-control" name="parameterSearchMethod" id="id_parameterSearchMethod">
-            <option value="Randomized search">Случайный поиск</option>       
-            <option value="Grid search">Поиск по сетке</option>        
-          </select>
-        </div>
       </div>
-      <button style= "margin-top: 20px;" class= "btn btn-primary" id= "btn-submit" type="submit">Выбрать</button>
-      <div id= "message" class="alert alert-info" style= "display: none;">
-        Идет построение модели...<br>Этот процесс может занять несколько минут, пожалуйста, подождите. После завершения Вам будет предоставлена ссылка на страницу с результатами.
-        Вы можете покинуть эту страницу, после завершения построенная модель с результатами появится в списке моделей текущего датасета.
-      </div>
-    </form>
-    <div class= "side-info card" style= "width: 60%; margin-left: 10px;">
-      <div class= "card-body">
-        <h4>Описание методов</h4>
-        <p>Тут будет описание доступных методов и их параметров.</p>
+    </div>
+    <div class="col-xl-7">
+      <div class= "side-info card">
+        <div class= "card-body">
+          <div id='overview'>
+            <p><b>Обзор методов</b></p>
+            <p>Доступны 4 типа моделей:</p>
+            <ul>
+              <li>Кластеризация методом k-средних</li>
+              <li>Кластеризация методом DBSCAN</li>
+              <li>Классификация с помощью дерева решений</li>
+              <li>Классификация с помощью случайного леса</li>
+            </ul>
+            <p><b>Кластеризация</b> - задача разделения объектов на группы таким образом, 
+                  чтобы объекты одной группы были максимально похожи, а объекты разных - 
+                  существенно различались.<br><b>Классификация</b> - задача разделения 
+                  множества объектов на группы, называемые классами. Эти группы заранее 
+                  определены столбцом класса, указанным для набора данных.</p>
+            <div class="alert alert-info">
+              Методы классификации недоступны, если для датасета не указан столбец класса!
+            </div>
+          </div>
+          <div id="clustering" style="display:none">
+            <p><b>Кластеризация методом k-средних</b></p>
+            <p>Алгоритм основан на минимизации суммарных квадратичных отклонений точек кластеров
+               от его центра. Методу необходимо знать число кластеров заранее.<br>
+               Система подбирает оптимальное число кластеров для текущего датасета от минимального
+               (по умолчанию 2) до максимального (количество образцов).</p>
+            <div class= "alert alert-info"> Вы можете настроить 
+               минимальное и максимальное количество кластеров в дополнительных параметрах. Если Вы 
+               точно знаете, на какое количество групп необходимо разделить образцы, введите это 
+               значение в оба поля.</div>
+            <p><b>Кластеризация методом DBSCAN</b></p>
+            <p>Алгоритм рассматривает кластеры как области с высокой плотностью расположения точек
+              (объектов), разделенные областями с низкой плотностью. Метод может отметить точки,
+              которые находятся одиноко в областях с малой плотностью как шум и отнести такие точки 
+              к кластеру с номером -1.</p>
+          </div>
+          <div id="classification" style="display:none">
+            <p><b>Методы классификации</b></p>
+            <p>Дополнительный параметр методов классификации - метод подбора параметров. Он может принимать
+               два значения:</p>
+            <ul>
+              <li>поиск по сетке - рассматриваются все возможные комбинации параметров, что занимает больше
+                  времени, но часто выдает лучший результат классификации</li>
+              <li>случайный поиск (установлен по умолчанию) - рассматриваются случайно выбранные 20% 
+                  возможных комбинаций параметров, подбор происходит значительно быстрее</li>
+            </ul>
+          </div>
+          <div class="btn-container">
+            <button id='prev' class= "btn btn-link"><i style= "margin-right: 2px; font-size: 14px; font-weight: lighter" id= "btn-icon" class="fa fa-chevron-left"></i>Методы классификации</button>
+            <button id='next' class= "btn btn-link">Методы кластеризации<i style= "margin-left: 2px; font-size: 14px; font-weight: lighter" id= "btn-icon" class="fa fa-chevron-right"></i></button>
+          </div>    
+        </div>
       </div>
     </div>
   </div>
+</div>
 {% endblock %}
 {% block javascript %}
 <script>
@@ -127,6 +186,10 @@
   }
   document.getElementById("btn-params").addEventListener("click", showParameters);
   document.getElementById("id_modelType").addEventListener("change", changeParameters);
+  let currentCard = 0;
+  let buttonContent = ["Обзор методов", "Методы кластеризации", "Методы классификации"];
+  document.getElementById("next").addEventListener("click", nextCard);
+  document.getElementById("prev").addEventListener("click", previousCard);
   function showPreloader() {
     let btn = document.getElementById("btn-submit");
     btn.setAttribute("class", "btn btn-primary disabled");
@@ -188,7 +251,29 @@
         }
         break;
     }  
-  } 
+  }
+  function nextCard() {
+    cards = [document.getElementById("overview"), document.getElementById("clustering"),
+    document.getElementById("classification")];
+    cards[currentCard].style.display = "none";
+    currentCard = (currentCard + 1) % buttonContent.length;
+    cards[currentCard].style.display = "block";
+    changeButtonNames();
+  }
+  function previousCard() {
+    cards = [document.getElementById("overview"), document.getElementById("clustering"),
+    document.getElementById("classification")];
+    cards[currentCard].style.display = "none";
+    currentCard = ((currentCard - 1) + buttonContent.length)% buttonContent.length;
+    cards[currentCard].style.display = "block";
+    changeButtonNames();
+  }
+  function changeButtonNames() {
+    let btnNext = document.getElementById("next");
+    let btnPrev = document.getElementById("prev");
+    btnNext.innerHTML = buttonContent[(currentCard + 1) % 3] + '<i style= "margin-left: 2px; font-size: 14px; font-weight: lighter" id= "btn-icon" class="fa fa-chevron-right"></i>';
+    btnPrev.innerHTML = '<i style= "margin-left: 2px; font-size: 14px; font-weight: lighter" id= "btn-icon" class="fa fa-chevron-left"></i>' + buttonContent[((currentCard - 1) + buttonContent.length)% buttonContent.length];
+  }
 </script>
 {% endblock %}
 

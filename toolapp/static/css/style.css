@@ -1,29 +1,41 @@
 .content {
   margin-top: 50px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  overflow-x: hidden;
-  position: relative
 }
 
 body {
-  padding: 20px 40px;
-  
+  padding: 20px 40px; 
 }
 
 p {
   text-align: justify;
   font-size: 16px;
+  text-overflow: ellipsis;
 }
 
 .title {
   margin: 20px 0px;
 }
+.date {
+  text-align: center;
+  margin: 5px 0px;
+}
 
+.dataset-title {
+  margin-bottom: 20px;
+}
+
+.description {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-height: 20px;
+  max-height: 100px;
+}
 .dataset-card {
-  margin: 15px 0px;
+  margin: 15px 1%;
+  width: 22%;
 }
 
 .inputfile {

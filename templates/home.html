@@ -15,28 +15,21 @@
     </nav>
     {% endblock %}
 {% block content %}
-<div class="container">
-  <div class="row">
-    <h2 class= "title">Загруженные данные</h2>
-  </div> 
-  <div class="row">
-    {% if dataset_list %}
-    {% for dataset in dataset_list %}
-    <div class="col-xl-3">
-      <div class="card dataset-card">
-        <div class= "card-body">
-          <h5>{{ dataset.title }}</h5>
-          <p>{{ dataset.description }}<p>
-          <p>Дата загрузки: {{dataset.date}}</p>
-        </div>
-        <a class= "btn btn-info options" href="{% url 'dataset_detail' pk=dataset.pk %}">Открыть датасет</a>
-        <a class= "btn btn-info options" href="{% url 'delete_dataset' pk=dataset.pk %}" onclick="return confirm('Подтвердите удаление');">Удалить датасет</a>
-      </div>
+<h2 class= "title">Загруженные данные</h2>
+{% if dataset_list %} 
+    <div class= "flex">
+      {% for dataset in dataset_list %}
+        <div class="dataset-card card">
+          <div class= "card-body">
+            <h4 class= "dataset-title">{{ dataset.title }}</h4>
+            <p class="description">{{ dataset.description }}<p>
+          </div>
+          <a class= "btn btn-info options" href="{% url 'dataset_detail' pk=dataset.pk %}">Открыть датасет</a>
+          <a class= "btn btn-info options" href="{% url 'delete_dataset' pk=dataset.pk %}" onclick="return confirm('Подтвердите удаление');">Удалить датасет</a>
+          <div class="date text-muted">
+            {{dataset.date}}
+          </div>
+          </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-    {% else %}
-    <p>Нет загруженных датасетов.</p>
-  {% endif %}
-  </div>
-</div>
 {% endblock %}

@@ -112,9 +112,11 @@ def getGraphicData(request, pk):
     dataset = Dataset.objects.get(pk=pk)
     df = pd.read_json(dataset.df).sort_index()
     features = pd.read_json(dataset.featureColumns)
-    X_normalized = pd.DataFrame(preprocessing.normalize(preprocessing.scale(df[np.array(features[0])])),
-      columns = features)
     X = df[np.array(features[0])]
+    numeric_columns = X.select_dtypes(include=np.number).columns.tolist()
+    X = X[numeric_columns].fillna(X[numeric_columns].mean())
+    X_normalized = pd.DataFrame(preprocessing.normalize(preprocessing.scale(X)),
+      columns = X.columns)
     y = df[dataset.classColumn] if (dataset.classColumn != "") else ""
     data = {'standard': makeData(X, y), 'normalized': makeData(X_normalized, y)}
     data = json.dumps(data)
@@ -153,10 +155,11 @@ def buildModel(dataset_pk, model_pk, result_pk, modelType, parameters):
     new_result = Result.objects.get(pk = result_pk)
     df = pd.read_json(dataset.df).sort_index()
     features = pd.read_json(dataset.featureColumns)
-    X = pd.DataFrame(preprocessing.normalize(preprocessing.scale(df[np.array(features[0])])),
-        columns = features)
+    X = df[np.array(features[0])]
     numeric_columns = X.select_dtypes(include=np.number).columns.tolist()
     X = X[numeric_columns].fillna(X[numeric_columns].mean())
+    X = pd.DataFrame(preprocessing.normalize(preprocessing.scale(X)),
+      columns = X.columns)
     resultDf = pd.DataFrame(df[np.array(features[0])])
     score = 0.0
     if (dataset.classColumn != ""):

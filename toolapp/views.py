@@ -118,22 +118,22 @@ def getGraphicData(request, pk):
     X_normalized = pd.DataFrame(preprocessing.normalize(preprocessing.scale(X)),
       columns = X.columns)
     y = df[dataset.classColumn] if (dataset.classColumn != "") else ""
-    data = {'standard': makeData(X, y), 'normalized': makeData(X_normalized, y)}
+    data = {'standard': makeData(X, y, dataset.title), 'normalized': makeData(X_normalized, y, dataset.title)}
     data = json.dumps(data)
     return JsonResponse(data, safe = False)
 
-def makeData(X, y):
+def makeData(X, y, title):
     pca = PCA(n_components = 2)
     pca.fit(X)
     X_pca = pd.DataFrame(pca.transform(X), columns=['x', 'y'], index=X.index)
     if (type(y) == str):
-        data = X_pca.to_dict(orient = "records")
+        data = {'datasets' : [{'label': title, 'data': X_pca.to_dict(orient = "records")}]}
     else:
         unique = y.unique()
         data = {'datasets': []}
         for i in range(0, len(unique)):
             class_data = X_pca[y == unique[i]].to_dict(orient = 'records')
-            class_dict = {'label': unique[i], 'data' : class_data}
+            class_dict = {'label': str(unique[i]), 'data' : class_data}
             data['datasets'].append(class_dict)
     return data
 
@@ -228,7 +228,7 @@ def buildModel(dataset_pk, model_pk, result_pk, modelType, parameters):
         (unique, counts) = np.unique(y, return_counts=True)
         forest = RandomForestClassifier()
         # Number of trees in random forest
-        n_estimators = [int(x) for x in np.linspace(start = 50, stop = 1000, num = 10)]
+        n_estimators = [int(x) for x in np.linspace(start = 100, stop = 500, num = 5)]
         # Number of features to consider at every split
         max_features = ['auto', 'sqrt']
         # Maximum number of levels in tree
@@ -237,9 +237,7 @@ def buildModel(dataset_pk, model_pk, result_pk, modelType, parameters):
         # Minimum number of samples required to split a node
         min_samples_split = [2, 3, 4, 5]
         # Minimum number of samples required at each leaf node
-        min_samples_leaf = [1, 2, 3, 4]
-        # Method of selecting samples for training each tree
-        bootstrap = [True, False]
+        min_samples_leaf = [2, 3, 4]
         # Create the random grid
         random_parameters = {'n_estimators': n_estimators,
                     'max_features': max_features,
@@ -247,12 +245,13 @@ def buildModel(dataset_pk, model_pk, result_pk, modelType, parameters):
                     'min_samples_split': min_samples_split,
                     'min_samples_leaf': min_samples_leaf,
                     'bootstrap': bootstrap}
+        cv = counts.min() if counts.min() < 5 else 5
         if (parameters["parameterSearchMethod"] == "Случайный поиск"):
-            random_grid = RandomizedSearchCV(forest, random_parameters,cv=counts.min(), n_jobs=-1,verbose=False)
+            random_grid = RandomizedSearchCV(forest, random_parameters,cv=cv, n_jobs=-1,verbose=False)
         else:
-                random_grid = GridSearchCV(forest, random_parameters,cv=counts.min(), n_jobs=-1,verbose=False)
-        random_grid.fit(X, y)       
-        skf = StratifiedKFold(n_splits=counts.min())
+                random_grid = GridSearchCV(forest, random_parameters,cv=cv, n_jobs=-1,verbose=False)
+        random_grid.fit(X, y.values.ravel())       
+        skf = StratifiedKFold(n_splits=cv)
         skf.split(X, y)
         forest = random_grid.best_estimator_
         result = pd.DataFrame()

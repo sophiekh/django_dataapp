@@ -51,8 +51,8 @@
               <div style = "display: none;" class="model3 form-group col-md-10">
                 <label for="id_parameterSearchMethod">Метод поиска параметров:</label>
                 <select class= "form-control" name="parameterSearchMethod" id="id_parameterSearchMethod">
-                  <option value="Randomized search">Случайный поиск</option>       
-                  <option value="Grid search">Поиск по сетке</option>        
+                  <option value="Случайный поиск">Случайный поиск</option>       
+                  <option value="Поиск по сетке">Поиск по сетке</option>        
                 </select>
               </div>
             </div>
@@ -125,7 +125,7 @@
   </div>
 </div>
 {% endblock %}
-{% block javascript %}
+{% block script %}
 <script>
   $(document).on('submit', '#model_form',function(e){
     e.preventDefault()

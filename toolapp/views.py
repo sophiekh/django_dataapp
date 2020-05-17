@@ -129,8 +129,13 @@ def makeData(X, y, title):
     if (type(y) == str):
         data = {'datasets' : [{'label': title, 'data': X_pca.to_dict(orient = "records")}]}
     else:
-        unique = y.unique()
         data = {'datasets': []}
+        unique = y.unique()
+        if (y.isnull().values.any()):
+            missing_data = X_pca[y.isnull()].to_dict(orient = 'records')
+            missing_dict = {'label': 'Не определен', 'data' : missing_data}
+            data['datasets'].append(missing_dict)
+            unique = unique[~pd.isnull(unique)]
         for i in range(0, len(unique)):
             class_data = X_pca[y == unique[i]].to_dict(orient = 'records')
             class_dict = {'label': str(unique[i]), 'data' : class_data}
@@ -153,118 +158,102 @@ def buildModel(dataset_pk, model_pk, result_pk, modelType, parameters):
     dataset = Dataset.objects.get(pk = dataset_pk)
     new_model = DataModel.objects.get(pk = model_pk)
     new_result = Result.objects.get(pk = result_pk)
-    df = pd.read_json(dataset.df).sort_index()
-    features = pd.read_json(dataset.featureColumns)
-    X = df[np.array(features[0])]
-    numeric_columns = X.select_dtypes(include=np.number).columns.tolist()
-    X = X[numeric_columns].fillna(X[numeric_columns].mean())
-    X = pd.DataFrame(preprocessing.normalize(preprocessing.scale(X)),
-      columns = X.columns)
-    resultDf = pd.DataFrame(df[np.array(features[0])])
-    score = 0.0
-    if (dataset.classColumn != ""):
-        resultDf.insert(0, dataset.classColumn, df[dataset.classColumn])
-    if (dataset.sampleColumn != ""):
-        resultDf.insert(0, dataset.sampleColumn, df[dataset.sampleColumn])    
-    if (modelType == "Кластеризация методом k-средних"):
-        best_k = 2
-        best_score = -1
-        clusters = np.zeros(X.shape[0])
-        for k in range (parameters['minClusters'], parameters["maxClusters"]):
-            model = KMeans(k, random_state = 0).fit(X)
-            curr_score = silhouette_score(X, model.labels_)
-            if (curr_score > best_score):
-                best_k = k
-                best_score = curr_score
-                clusters = model.labels_
-        resultDf.insert(0,'Кластер', clusters)
-        score = best_score
-    elif (modelType == "Кластеризация методом DBSCAN"):
-        neigh = NearestNeighbors(n_neighbors=2)
-        nbrs = neigh.fit(X)
-        distances, indices = nbrs.kneighbors(X)
-        distances = distances[:,1]
-        if (distances.min() == 0.0):
-            eps = np.linspace(0.001,distances.max(),30)
-        else:
-            eps = np.linspace(distances.min(),distances.max(),30)
-        min_samples = range(2, 15)
-        clusters = np.zeros(X.shape[0])
-        best_score = -1
-        for e in eps:
-            for s in min_samples:
-                model = DBSCAN(eps = e, min_samples = s)
-                model.fit(X)
-                curr_score = dbscan_score(X, model.labels_)
+    try:
+        df = pd.read_json(dataset.df).sort_index()
+        features = pd.read_json(dataset.featureColumns)
+        X = df[np.array(features[0])]
+        numeric_columns = X.select_dtypes(include=np.number).columns.tolist()
+        X = X[numeric_columns].fillna(X[numeric_columns].mean())
+        X = pd.DataFrame(preprocessing.normalize(preprocessing.scale(X)),
+        columns = X.columns)
+        resultDf = pd.DataFrame(df[np.array(features[0])])
+        score = 0.0
+        if (dataset.classColumn != ""):
+            resultDf.insert(0, dataset.classColumn, df[dataset.classColumn])
+        if (dataset.sampleColumn != ""):
+            resultDf.insert(0, dataset.sampleColumn, df[dataset.sampleColumn])    
+        if (modelType == "Кластеризация методом k-средних"):
+            best_k = 2
+            best_score = -1
+            clusters = np.zeros(X.shape[0])
+            for k in range (parameters['minClusters'], parameters["maxClusters"]):
+                model = KMeans(k, random_state = 0).fit(X)
+                curr_score = silhouette_score(X, model.labels_)
                 if (curr_score > best_score):
+                    best_k = k
                     best_score = curr_score
                     clusters = model.labels_
-        resultDf.insert(0,'Кластер', clusters)
-        score = best_score
-    elif (modelType == "Классификация деревом решений"):
-        y = pd.DataFrame(df[dataset.classColumn])
-        (unique, counts) = np.unique(y, return_counts=True)
-        tree = DecisionTreeClassifier()
-        tree_parameters = {'min_samples_leaf': range(2, 5),
-            'max_depth': range(2, X.shape[0] ),
-            'max_features': range(2, features.size + 1)}
-        if (parameters["parameterSearchMethod"] == "Случайный поиск"):
-            tree_grid = RandomizedSearchCV(tree, tree_parameters,cv=counts.min(), n_jobs=-1,verbose=False)
-        else:
-                tree_grid = GridSearchCV(tree, tree_parameters,cv=counts.min(), n_jobs=-1,verbose=False)
-        tree_grid.fit(X, y)       
-        skf = StratifiedKFold(n_splits=counts.min())
-        skf.split(X, y)
-        tree = tree_grid.best_estimator_
-        result = pd.DataFrame()
-        for train_index, test_index in skf.split(X, y):
-            tree.fit(X.iloc[train_index], y.iloc[train_index])
-            predictions = pd.DataFrame(tree.predict(X.iloc[test_index]), test_index, columns = ['Определенный_моделью_класс'])
-            result = result.append(predictions)
-        resultDf = result.join(resultDf).sort_index()
-        score = accuracy_score(y, resultDf['Определенный_моделью_класс'])
-    elif (modelType == "Классификация случайным лесом"):
-        y = pd.DataFrame(df[dataset.classColumn])
-        (unique, counts) = np.unique(y, return_counts=True)
-        forest = RandomForestClassifier()
-        # Number of trees in random forest
-        n_estimators = [int(x) for x in np.linspace(start = 100, stop = 500, num = 5)]
-        # Number of features to consider at every split
-        max_features = ['auto', 'sqrt']
-        # Maximum number of levels in tree
-        max_depth = [int(x) for x in np.linspace(2, 20, num = 2)]
-        max_depth.append(None)
-        # Minimum number of samples required to split a node
-        min_samples_split = [2, 3, 4, 5]
-        # Minimum number of samples required at each leaf node
-        min_samples_leaf = [2, 3, 4]
-        # Create the random grid
-        random_parameters = {'n_estimators': n_estimators,
-                    'max_features': max_features,
-                    'max_depth': max_depth,
-                    'min_samples_split': min_samples_split,
-                    'min_samples_leaf': min_samples_leaf,
-                    'bootstrap': bootstrap}
-        cv = counts.min() if counts.min() < 5 else 5
-        if (parameters["parameterSearchMethod"] == "Случайный поиск"):
-            random_grid = RandomizedSearchCV(forest, random_parameters,cv=cv, n_jobs=-1,verbose=False)
-        else:
+            resultDf.insert(0,'Кластер', clusters)
+            score = best_score
+        elif (modelType == "Кластеризация методом DBSCAN"):
+            neigh = NearestNeighbors(n_neighbors=2)
+            nbrs = neigh.fit(X)
+            distances, indices = nbrs.kneighbors(X)
+            distances = distances[:,1]
+            if (distances.min() == 0.0):
+                eps = np.linspace(0.001,distances.max(),30)
+            else:
+                eps = np.linspace(distances.min(),distances.max(),30)
+            min_samples = range(2, 15)
+            clusters = np.zeros(X.shape[0])
+            best_score = -1
+            for e in eps:
+                for s in min_samples:
+                    model = DBSCAN(eps = e, min_samples = s)
+                    model.fit(X)
+                    curr_score = dbscan_score(X, model.labels_)
+                    if (curr_score > best_score):
+                        best_score = curr_score
+                        clusters = model.labels_
+            resultDf.insert(0,'Кластер', clusters)
+            score = best_score
+        elif (modelType == "Классификация деревом решений"):
+            X['class'] = pd.DataFrame(df[dataset.classColumn])
+            test = X.loc[X.isnull()['class']].drop(columns = ['class'])
+            train = X.loc[~X.isnull()['class']].drop(columns = ['class'])
+            train_y = pd.DataFrame(df[dataset.classColumn]).dropna()
+            (unique, counts) = np.unique(train_y, return_counts=True)
+            tree = DecisionTreeClassifier()
+            tree_parameters = {'min_samples_leaf': range(2, 5),
+                'max_depth': range(2, train.shape[0]),
+                'max_features': range(2, features.size + 1)}
+            cv = counts.min() if counts.min() < 5 else 5
+            if (parameters["parameterSearchMethod"] == "Случайный поиск"):
+                tree_grid = RandomizedSearchCV(tree, tree_parameters,cv=cv, n_jobs=-1,verbose=False)
+            else:
+                tree_grid = GridSearchCV(tree, tree_parameters,cv=cv, n_jobs=-1,verbose=False)
+            tree_grid.fit(train, train_y)       
+            score = tree_grid.best_score_
+            predictions = pd.DataFrame(tree_grid.predict(test), test.index, columns = ['Определенный_моделью_класс'])
+            resultDf = predictions.join(resultDf, how = 'outer')
+        elif (modelType == "Классификация случайным лесом"):
+            X['class'] = pd.DataFrame(df[dataset.classColumn])
+            test = X.loc[X.isnull()['class']].drop(columns = ['class'])
+            train = X.loc[~X.isnull()['class']].drop(columns = ['class'])
+            train_y = pd.DataFrame(df[dataset.classColumn]).dropna()
+            (unique, counts) = np.unique(train_y, return_counts=True)
+            forest = RandomForestClassifier()
+            random_parameters = {'n_estimators': [100, 250, 500],
+                        'max_features': ['auto', 'sqrt'],
+                        'max_depth': [int(x) for x in np.linspace(2, 20, num = 2)],
+                        'min_samples_split': [2, 3, 4, 5],
+                        'min_samples_leaf': [2, 3, 4]}
+            cv = counts.min() if counts.min() < 5 else 5
+            if (parameters["parameterSearchMethod"] == "Поиск по сетке"):
                 random_grid = GridSearchCV(forest, random_parameters,cv=cv, n_jobs=-1,verbose=False)
-        random_grid.fit(X, y.values.ravel())       
-        skf = StratifiedKFold(n_splits=cv)
-        skf.split(X, y)
-        forest = random_grid.best_estimator_
-        result = pd.DataFrame()
-        for train_index, test_index in skf.split(X, y):
-            forest.fit(X.iloc[train_index], y.iloc[train_index])
-            predictions = pd.DataFrame(forest.predict(X.iloc[test_index]), test_index, columns = ['Определенный_моделью_класс'])
-            result = result.append(predictions)
-        resultDf = result.join(resultDf).sort_index()
-        score = accuracy_score(y, resultDf['Определенный_моделью_класс'])       
-    resultJSON = resultDf.to_json()
-    new_result.df = resultJSON
-    new_result.score = score
-    new_result.save()
+            else:
+                    random_grid = RandomizedSearchCV(forest, random_parameters,cv=cv, n_jobs=-1,verbose=False)
+            random_grid.fit(train, train_y.values.ravel())       
+            score = random_grid.best_score_
+            predictions = pd.DataFrame(random_grid.predict(test), test.index, columns = ['Определенный_моделью_класс'])
+            resultDf = predictions.join(resultDf, how = 'outer')      
+        resultJSON = resultDf.to_json()
+        new_result.df = resultJSON
+        new_result.score = score
+        new_result.save()
+        return new_result.pk
+    except:
+        new_model.delete()
 
 @login_required
 def createModelView(request, pk):

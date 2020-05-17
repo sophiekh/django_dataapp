@@ -23,13 +23,10 @@
   <p>Тип модели: {{ modelType }}</p>
   <p>Дата создания: {{date}}</p>
   <!-- Additional info -->
-  <p>Результаты:</p>
   {% if results %} 
-    <ol class= "list-group list-group-flush">
       {% for result in results %}
-       <li class= "list-item"><a href="{% url 'result_detail' pk=result.pk %}">Посмотреть результаты</a></li>
+        <a class= "btn btn-info" href="{% url 'result_detail' pk=result.pk %}">Посмотреть результаты</a>
       {% endfor %}
-    </ol>
     {% else %}
     <p>Для этой модели еще нет результатов.</p>
     {% endif %}

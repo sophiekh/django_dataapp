@@ -118,3 +118,11 @@ canvas {
   margin: 10px;
 }
 
+.prediction {
+  background-color: #428bca;
+  color: white;
+}
+
+.prediction:hover {
+  background-color: royalblue !important;
+}

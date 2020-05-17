@@ -21,8 +21,8 @@ class DataModelForm(forms.Form):
     ("Классификация случайным лесом", "Классификация случайным лесом")], label = "Тип модели")
     minClusters = forms.IntegerField()
     maxClusters = forms.IntegerField()
-    parameterSearchMethod = forms.ChoiceField(choices = [("Randomized search", "Randomized search" ),
-    ("Grid search", "Grid search")], label = "Метод подбора параметров модели")
+    parameterSearchMethod = forms.ChoiceField(choices = [("Случайный поиск", "Случайный поиск" ),
+    ("Поиск по сетке", "Поиск по сетке")], label = "Метод подбора параметров модели")
 
 class ChoiceFieldNoValidation(forms.MultipleChoiceField):
     def validate(self, value):

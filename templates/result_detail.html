@@ -35,10 +35,10 @@
       <p>Тип: {{ type }}</p>
       <p>Дата создания: {{model_date}}</p>
       {% if type == "Классификация деревом решений" %}
-        <p>Точность: {% widthratio score 1 100%} %</p>
+        <p>Оценка точности: {% widthratio score 1 100%} %</p>
       {% endif %}
       {% if type == "Классификация случайным лесом" %}
-        <p>Точность: {% widthratio score 1 100%} %</p>
+        <p>Оценка точности: {% widthratio score 1 100%} %</p>
       {% endif %}
       {% if type == "Кластеризация методом k-средних" %}
       <p>Оценка метрикой Силуэт: {{score}}</p>
@@ -54,10 +54,23 @@
 <div class = "data-table table-responsive">
   {{ data_table|safe}}
 </div>
+{% block script %}
+{% load static %}
 <script>
-  let data_table = document.querySelector('table');
-  data_table.className = "table table-hover table-sm";
+  let classification = false;
 </script>
+{% if type == "Классификация деревом решений" %}
+<script>
+  classification = true;
+</script>
+{% endif %}
+{% if type == "Классификация случайным лесом" %}
+<script>
+  classification = true;
+</script>
+{% endif %}
+<script src="{% static 'js/result_detail.js' %}"></script>
+{% endblock %}
 {% else %}
 <p>У Вас нет прав на просмотр этих данных.</p>
 {% endif%}

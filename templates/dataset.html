@@ -72,15 +72,8 @@
   </div>
   </div>
 {% endblock %}
-{% block javascript %}
-<script>
-  let input = document.getElementById("id_data");
-  let label = document.getElementById('output');
-  input.addEventListener('change', function(e){
-    let fileName = e.target.value.split( '\\' ).pop();
-    if( fileName )
-      label.innerHTML = fileName;
-	});
-</script>
+{% block script %}
+{% load static %}
+<script src="{% static 'js/dataset.js' %}"></script>
 {% endblock %}
 

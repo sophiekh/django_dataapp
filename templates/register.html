@@ -6,7 +6,7 @@
         <a class="nav-link" href="#">Профиль</a>
         <a class="nav-link" href="{% url 'logout'%}?next={{request.path}}">Выйти</a>
       {% else %}
-        <a class="nav-link" href="{% url 'login'%}?next={{request.path}}">Войти</a>
+        <a class="nav-link" href="{% url 'login'%}?next='/toolapp/'">Войти</a>
         <a class="nav-link active" href="{% url 'register'%}?next={{request.path}}">Регистрация</a>  
       {% endif %} 
     </nav>

@@ -8,7 +8,6 @@
         <a class="nav-link" href="/">Все данные</a>
         <a class="nav-link" href="{% url 'dataset_detail' pk=dataset_pk %}">Датасет: {{title}}</a>
         <a class="nav-link" href="{% url 'models' pk=dataset_pk %}">Список моделей</a>
-        <a class="nav-link" href= "{% url 'model_detail' pk=model_pk %}">Назад к модели</a>
         <a class="nav-link active" href= "{% url 'result_detail' pk=result_pk %}">Результат</a>
         <a class="nav-link" href="{% url 'logout'%}?next={{request.path}}">Выйти</a>
       {% else %}
@@ -19,59 +18,63 @@
 {% endblock %}
 {% block content %}
 {% if owner == user %}
-</br>
-<div class= "flex">
-  <section class= "dataset-info card" style="width: 30%;">
-    <div class= "card-body">
-      <h4 class= "title">Информация о датасете</h4>
-      <p>{{ title }}</p>
-      <p class= "description">{{ description }}</p>
-      <p>Дата загрузки: {{date}}</p>
+  <div class= "flex">
+    <section class= "dataset-info card" style="width: 30%;">
+      <div class= "card-body">
+        <h4 class= "title">Информация о датасете</h4>
+        <p>{{ title }}</p>
+        <p class= "description">{{ description }}</p>
+        <p>Дата загрузки: {{date}}</p>
+      </div>
+    </section>
+    <div class= "model-info card" style="width: 70%;">
+      <div class= "card-body">
+        <h4 class= "title">Информация о модели</h4>
+        <p>Тип: {{ type }}</p>
+        <p>Дата создания: {{model_date}}</p>
+        {% if type == "Классификация случайным лесом" or type == "Классификация деревом решений"%}
+          <p>Оценка точности: {% widthratio score 1 100%} %</p>
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#importances-modal">
+            Важность признаков
+          </button>
+          <div class="modal fade" id="importances-modal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="modalTitle">Важность признаков</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  {{importances | safe}}
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+        {% if type == "Кластеризация методом k-средних" or type == "Кластеризация методом DBSCAN"%}
+          <p>Оценка метрикой Силуэт: {{score}}</p>
+        {% endif %}
+        <a class= "btn btn-primary" href= "{% url 'result_download' pk=result_pk %}">Скачать результат в формате .xlsx</a>
+      </div>
     </div>
-  </section>
-  <div class= "model-info card" style="width: 70%;">
-    <div class= "card-body">
-      <h4 class= "title">Информация о модели</h4>
-      <p>Тип: {{ type }}</p>
-      <p>Дата создания: {{model_date}}</p>
-      {% if type == "Классификация деревом решений" %}
-        <p>Оценка точности: {% widthratio score 1 100%} %</p>
-      {% endif %}
-      {% if type == "Классификация случайным лесом" %}
-        <p>Оценка точности: {% widthratio score 1 100%} %</p>
-      {% endif %}
-      {% if type == "Кластеризация методом k-средних" %}
-      <p>Оценка метрикой Силуэт: {{score}}</p>
-      {% endif %}
-      {% if type == "Кластеризация методом DBSCAN" %}
-      <p>Оценка метрикой Силуэт: {{score}}</p>
-      {% endif %}
-      
-      <a class= "btn btn-primary" href= "{% url 'result_download' pk=result_pk %}">Скачать результат в формате .xlsx</a>
-    </div>
+  </div> 
+  <div class = "data-table table-responsive">
+    {{ data_table|safe}}
   </div>
-</div> 
-<div class = "data-table table-responsive">
-  {{ data_table|safe}}
-</div>
+{% else %}
+  <p>У Вас нет прав на просмотр этих данных.</p>
+{% endif%}
+{% endblock %}
 {% block script %}
 {% load static %}
 <script>
+  type = "{{type}}";
   let classification = false;
+  if ((type == "Классификация деревом решений")||(type == "Классификация случайным лесом")){
+    classification = true; 
+  }
 </script>
-{% if type == "Классификация деревом решений" %}
-<script>
-  classification = true;
-</script>
-{% endif %}
-{% if type == "Классификация случайным лесом" %}
-<script>
-  classification = true;
-</script>
-{% endif %}
 <script src="{% static 'js/result_detail.js' %}"></script>
-{% endblock %}
-{% else %}
-<p>У Вас нет прав на просмотр этих данных.</p>
-{% endif%}
 {% endblock %}

@@ -17,13 +17,12 @@ class Dataset(models.Model):
 class DataModel(models.Model):
       dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, null=True, blank=True)
       modelType = models.CharField(max_length=250)
-      savedModel = models.TextField(default = '')
+      info = models.TextField(default = '')
       date = models.DateTimeField(auto_now_add = True)
 
 class Result(models.Model):
-      dataModel = models.ForeignKey(DataModel, on_delete=models.CASCADE, null=True, blank=True)
+      dataModel = models.OneToOneField(DataModel, on_delete=models.CASCADE, primary_key=True)
       df = models.TextField(default = '')
-      date = models.DateTimeField(auto_now_add = True)
       score = models.DecimalField(default = 0.0, max_digits = 4, decimal_places = 2)
 
 

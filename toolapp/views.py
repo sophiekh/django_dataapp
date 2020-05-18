@@ -154,10 +154,10 @@ def dbscan_score(X, clusters):
     else:
         return -1
 
-def buildModel(dataset_pk, model_pk, result_pk, modelType, parameters):
+def buildModel(dataset_pk, model_pk, modelType, parameters):
     dataset = Dataset.objects.get(pk = dataset_pk)
     new_model = DataModel.objects.get(pk = model_pk)
-    new_result = Result.objects.get(pk = result_pk)
+    new_result = new_model.result
     try:
         df = pd.read_json(dataset.df).sort_index()
         features = pd.read_json(dataset.featureColumns)
@@ -226,6 +226,12 @@ def buildModel(dataset_pk, model_pk, result_pk, modelType, parameters):
             score = tree_grid.best_score_
             predictions = pd.DataFrame(tree_grid.predict(test), test.index, columns = ['Определенный_моделью_класс'])
             resultDf = predictions.join(resultDf, how = 'outer')
+            feature_importance = pd.DataFrame(list(zip(train.columns, tree_grid.best_estimator_.feature_importances_)), columns = ['Признак', 'Важность'])
+            feature_importance.sort_values(by = 'Важность', ascending=False).reset_index(drop = True)
+            important = feature_importance.head(10)
+            importantJSON = important.to_json()
+            info = {'feature_importance': importantJSON}
+            new_model.info = json.dumps(info)
         elif (modelType == "Классификация случайным лесом"):
             X['class'] = pd.DataFrame(df[dataset.classColumn])
             test = X.loc[X.isnull()['class']].drop(columns = ['class'])
@@ -246,14 +252,22 @@ def buildModel(dataset_pk, model_pk, result_pk, modelType, parameters):
             random_grid.fit(train, train_y.values.ravel())       
             score = random_grid.best_score_
             predictions = pd.DataFrame(random_grid.predict(test), test.index, columns = ['Определенный_моделью_класс'])
-            resultDf = predictions.join(resultDf, how = 'outer')      
+            resultDf = predictions.join(resultDf, how = 'outer') 
+            feature_importance = pd.DataFrame(list(zip(train.columns, random_grid.best_estimator_.feature_importances_)), columns = ['Признак', 'Важность'])
+            feature_importance.sort_values(by = 'Важность', ascending=False).reset_index(drop = True)
+            important = feature_importance.head(10)
+            important = important.to_json()
+            info = {'feature_importance': important}
+            new_model.info = json.dumps(info)     
         resultJSON = resultDf.to_json()
         new_result.df = resultJSON
         new_result.score = score
         new_result.save()
+        new_model.save()
         return new_result.pk
-    except:
+    except Exception as e:
         new_model.delete()
+        raise e
 
 @login_required
 def createModelView(request, pk):
@@ -269,10 +283,9 @@ def createModelView(request, pk):
         new_model = DataModel.objects.create(dataset = dataset, modelType = modelType)
         new_result = Result.objects.create(dataModel = new_model, df = '', score = 0)
         model_pk = new_model.pk
-        result_pk = new_result.pk
         queue = django_rq.get_queue('low')
-        job = queue.enqueue(buildModel, args = (pk, model_pk, result_pk, modelType, parameters), job_timeout='60m', result_ttl=86400)    
-        return JsonResponse({"job_id": job.id, 'result_pk': new_result.pk})
+        job = queue.enqueue(buildModel, args = (pk, model_pk, modelType, parameters), job_timeout='40m', result_ttl=86400)    
+        return JsonResponse({"job_id": job.id, 'result_pk': new_model.pk})
     else:
         form = DataModelForm()
         dataset = Dataset.objects.get(pk = pk)
@@ -296,25 +309,25 @@ def modelsListView(request, pk):
     return render(request, 'model_list.html', {'dataset_pk': dataset.pk, 'models': models, 'title': dataset.title})
 
 @login_required
-def modelDetailView(request, pk):
-    model = DataModel.objects.get(pk = pk)
-    results = Result.objects.filter(dataModel = model)
-    return render(request, 'model_detail.html', {'model_pk': pk, 'dataset_pk': model.dataset.pk, 'title': model.dataset.title, 'results': results, 'modelType': model.modelType, 'owner': model.dataset.owner, 'date': model.date})
-
-@login_required
 def resultDetailView(request, pk):
-    result = Result.objects.get(pk=pk)
-    dataset = result.dataModel.dataset
+    model = DataModel.objects.get(pk = pk)
+    result = model.result
+    dataset = model.dataset
     model_pk = result.dataModel.pk
     df = pd.read_json(result.df).sort_index()
     df_html = df.to_html()
-    context = {'dataset_pk': dataset.pk, 'result_pk': pk, 'model_pk': model_pk, 'data_table': df_html, 'title': dataset.title, 'description': dataset.description, 
-    'owner': dataset.owner, 'model_date': result.date, 'type': result.dataModel.modelType, 'date': dataset.date, 'score': result.score}
+    importances = 0
+    if (model.modelType == "Классификация деревом решений" or model.modelType == "Классификация случайным лесом"):
+        model_info = json.loads(model.info)
+        importances = pd.read_json(model_info['feature_importance']).to_html()
+    context = {'dataset_pk': dataset.pk, 'result_pk': pk, 'model_pk': pk, 'data_table': df_html, 'title': dataset.title, 'description': dataset.description, 
+    'owner': dataset.owner, 'model_date': model.date, 'type': model.modelType, 'date': dataset.date, 'score': result.score, 'importances': importances}
     return render(request, "result_detail.html", context)
 
 @login_required
 def resultDownloadView(request, pk):
-    result = Result.objects.get(pk=pk)
+    model = DataModel.object.get(pk = pk)
+    result = model.result
     df = pd.read_json(result.df).sort_index()
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename=result_' + str(pk) + '.xlsx'

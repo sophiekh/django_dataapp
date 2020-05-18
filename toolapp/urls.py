@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from .views import HomePageView, register, getGraphicData, getJobInfo, createDatasetView, resultDownloadView, deleteDatasetView, deleteModelView, datasetDetailView, datasetPCAView, createModelView, modelsListView, modelDetailView, resultDetailView, changeColumnsView
+from .views import HomePageView, register, getGraphicData, getJobInfo, createDatasetView, resultDownloadView, deleteDatasetView, deleteModelView, datasetDetailView, datasetPCAView, createModelView, modelsListView, resultDetailView, changeColumnsView
  
  
 urlpatterns = [
@@ -16,7 +16,6 @@ urlpatterns = [
     path('job_info/<str:id>/', getJobInfo, name = 'job_info'),
     path('delete_model/<int:pk>/', deleteModelView, name='delete_model'),
     path('dataset/<int:pk>/models/', modelsListView, name = 'models'),
-    path('model/<int:pk>/', modelDetailView, name = 'model_detail'),
     path('result/<int:pk>/', resultDetailView, name = 'result_detail'),
     path('result/<int:pk>/download/', resultDownloadView, name = 'result_download'),
     
